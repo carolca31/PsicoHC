@@ -1,630 +1,828 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PsicoHC — Psicóloga Carol</title>
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Georgia, 'Times New Roman', serif; background: #FDF9F4; color: #3D1F0D; }
-    :root {
-      --bg: #FDF9F4;
-      --surface: #FFFFFF;
-      --surfaceAlt: #FFF5F0;
-      --border: #F0D9CC;
-      --accent: #5DC9C9;
-      --accentDark: #3AADAD;
-      --accentPale: #E0F7F7;
-      --rose: #E8857A;
-      --rosePale: #FDECEA;
-      --yellow: #F5C842;
-      --yellowPale: #FFFBEA;
-      --brown: #3D1F0D;
-      --textMid: #7A5C4A;
-      --textLight: #B89A8A;
-      --danger: #C0392B;
-    }
-    input, select, textarea, button { font-family: inherit; }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PsicoHC — Carol Castillo</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage-compat.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:Georgia,'Times New Roman',serif;background:#FDF9F4;color:#3D1F0D;font-size:14px;}
+:root{
+  --bg:#FDF9F4;--surface:#FFFFFF;--alt:#FFF5F0;--border:#F0D9CC;
+  --accent:#5DC9C9;--adk:#3AADAD;--apl:#E0F7F7;
+  --rose:#E8857A;--rpl:#FDECEA;--yellow:#F5C842;--ypl:#FFFBEA;
+  --brown:#3D1F0D;--mid:#7A5C4A;--light:#B89A8A;--danger:#C0392B;
+}
+input,select,textarea,button{font-family:inherit;font-size:13px;}
+input,select,textarea{width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;color:var(--brown);background:var(--surface);outline:none;transition:border-color 0.2s;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+textarea{resize:vertical;line-height:1.6;}
+button{cursor:pointer;}
 
-    /* Layout */
-    #app { display: flex; height: 100vh; overflow: hidden; }
-    #sidebar { width: 260px; flex-shrink: 0; background: var(--surface); border-right: 2px solid var(--border); display: flex; flex-direction: column; }
-    #main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+/* Layout */
+#app{display:flex;height:100vh;overflow:hidden;}
+#sidebar{width:265px;flex-shrink:0;background:var(--surface);border-right:2px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+#main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden;}
 
-    /* Sidebar */
-    #sidebar-header { padding: 16px 14px 14px; border-bottom: 2px solid var(--border); background: linear-gradient(135deg, rgba(93,201,201,0.08), rgba(245,200,66,0.08)); }
-    #logo-row { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
-    #logo-icon { width: 38px; height: 38px; background: linear-gradient(135deg, var(--accent), var(--accentDark)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 2px 8px rgba(93,201,201,0.3); flex-shrink: 0; }
-    #save-status { font-size: 10px; font-weight: 700; text-align: right; margin-bottom: 10px; color: var(--accent); }
-    #btn-new { width: 100%; padding: 9px 0; background: linear-gradient(135deg, var(--accent), var(--accentDark)); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 8px rgba(93,201,201,0.3); }
-    #btn-new:hover { opacity: 0.9; }
-    #search-wrap { padding: 10px 12px 8px; }
-    #search { width: 100%; padding: 7px 10px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 12px; color: var(--brown); background: var(--surfaceAlt); outline: none; }
-    #patient-list { flex: 1; overflow-y: auto; padding: 3px 12px 12px; }
-    #sidebar-footer { padding: 10px 14px; border-top: 1px solid var(--border); background: var(--yellowPale); text-align: center; font-size: 10px; color: var(--textMid); font-weight: 600; }
+/* Sidebar header */
+#sh{padding:14px 13px 12px;border-bottom:2px solid var(--border);background:linear-gradient(135deg,rgba(93,201,201,.09),rgba(245,200,66,.09));}
+#logo-row{display:flex;align-items:center;gap:9px;margin-bottom:4px;}
+#logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--adk));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+#save-st{font-size:10px;font-weight:700;text-align:right;margin-bottom:9px;color:var(--accent);}
+#btn-new{width:100%;padding:8px 0;background:linear-gradient(135deg,var(--accent),var(--adk));color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;}
+#btn-new:hover{opacity:.88;}
+#srch-wrap{padding:9px 11px 7px;}
+#srch{padding:7px 10px;font-size:12px;background:var(--alt);}
+#plist{flex:1;overflow-y:auto;padding:3px 11px 11px;}
+#sfoot{padding:9px 13px;border-top:1px solid var(--border);background:var(--ypl);text-align:center;font-size:10px;color:var(--mid);font-weight:600;}
 
-    /* Patient card */
-    .patient-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px; padding: 12px; cursor: pointer; margin-bottom: 8px; transition: all 0.15s; }
-    .patient-card:hover { border-color: var(--accent); box-shadow: 0 2px 12px rgba(93,201,201,0.15); }
-    .card-hc { font-size: 10px; font-weight: 800; color: var(--accent); letter-spacing: 0.12em; margin-bottom: 3px; }
-    .card-name { font-size: 14px; font-weight: 700; color: var(--brown); }
-    .card-sub { font-size: 12px; color: var(--textMid); margin-top: 2px; }
-    .card-date { font-size: 11px; color: var(--textLight); margin-top: 5px; }
-    .card-tags { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px; }
-    .card-tag { padding: 2px 7px; background: var(--accentPale); color: var(--accentDark); border-radius: 10px; font-size: 10px; font-weight: 700; }
-    .card-del { float: right; padding: 3px 7px; background: var(--rosePale); color: var(--danger); border: none; border-radius: 5px; cursor: pointer; font-size: 11px; }
+/* Patient cards */
+.pcard{background:var(--surface);border:1.5px solid var(--border);border-radius:11px;padding:11px;margin-bottom:7px;cursor:pointer;transition:all .15s;}
+.pcard:hover{border-color:var(--accent);box-shadow:0 2px 10px rgba(93,201,201,.15);}
+.pc-hc{font-size:10px;font-weight:800;color:var(--accent);letter-spacing:.12em;margin-bottom:2px;}
+.pc-name{font-size:13px;font-weight:700;color:var(--brown);}
+.pc-sub{font-size:11px;color:var(--mid);margin-top:2px;}
+.pc-date{font-size:10px;color:var(--light);margin-top:4px;}
+.pc-tags{margin-top:7px;display:flex;flex-wrap:wrap;gap:3px;}
+.pc-tag{padding:2px 7px;background:var(--apl);color:var(--adk);border-radius:10px;font-size:10px;font-weight:700;}
+.pc-del{float:right;padding:3px 7px;background:var(--rpl);color:var(--danger);border:none;border-radius:5px;font-size:11px;}
 
-    /* Main area */
-    #welcome { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 40px; background: radial-gradient(ellipse at center, var(--accentPale) 0%, var(--bg) 70%); }
-    #patient-view { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-    #patient-header { padding: 12px 20px; border-bottom: 2px solid var(--border); background: var(--surface); display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
-    #btn-back { padding: 5px 12px; background: var(--surfaceAlt); color: var(--textMid); border: 1.5px solid var(--border); border-radius: 7px; font-size: 11px; cursor: pointer; }
-    #tab-nav { display: flex; overflow-x: auto; border-bottom: 2px solid var(--border); background: var(--surface); flex-shrink: 0; scrollbar-width: none; }
-    #tab-nav::-webkit-scrollbar { display: none; }
-    .tab-btn { padding: 9px 12px; border: none; border-bottom: 3px solid transparent; background: transparent; color: var(--textMid); font-size: 11px; font-weight: 500; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 4px; transition: all 0.15s; }
-    .tab-btn.active { border-bottom-color: var(--accent); background: var(--accentPale); color: var(--accentDark); font-weight: 700; }
-    #tab-content { flex: 1; overflow-y: auto; padding: 24px 28px; }
+/* Main views */
+#welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:40px;background:radial-gradient(ellipse at center,var(--apl) 0%,var(--bg) 70%);}
+#pview{display:none;flex:1;flex-direction:column;min-width:0;overflow:hidden;}
 
-    /* Form elements */
-    .section { margin-bottom: 28px; }
-    .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-    .section-num { width: 28px; height: 28px; border-radius: 7px; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; flex-shrink: 0; }
-    .section-title { font-size: 13px; font-weight: 800; color: var(--brown); text-transform: uppercase; letter-spacing: 0.08em; }
-    .section-body { background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px; padding: 18px 20px; }
-    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
-    .field { margin-bottom: 16px; }
-    .field label { display: block; font-size: 11px; font-weight: 700; color: var(--textMid); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
-    .field input, .field select, .field textarea { width: 100%; padding: 8px 11px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; color: var(--brown); background: var(--surface); outline: none; }
-    .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); }
-    .field textarea { resize: vertical; line-height: 1.6; }
-    .multichk { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
-    .chk-btn { padding: 4px 11px; border-radius: 20px; font-size: 12px; border: 1.5px solid var(--border); background: var(--surface); color: var(--textMid); cursor: pointer; }
-    .chk-btn.on { border-color: var(--accent); background: var(--accentPale); color: var(--accentDark); font-weight: 700; }
-    .scale-row { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
-    .scale-btn { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border); background: var(--surface); color: var(--textMid); font-size: 13px; font-weight: 700; cursor: pointer; flex-shrink: 0; }
-    .scale-btn.on { border-color: var(--accent); background: var(--accent); color: #fff; }
-    .scale-label { font-size: 12px; color: var(--accentDark); font-weight: 700; margin-left: 6px; }
+/* Patient header */
+#phdr{padding:10px 18px;border-bottom:2px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:12px;flex-shrink:0;}
+#btn-back{padding:5px 11px;background:var(--alt);color:var(--mid);border:1.5px solid var(--border);border-radius:7px;font-size:11px;}
 
-    /* Sessions & evaluations */
-    .item-card { background: var(--surfaceAlt); border-radius: 10px; margin-bottom: 10px; border: 1px solid var(--border); overflow: hidden; }
-    .item-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; cursor: pointer; }
-    .item-num { width: 26px; height: 26px; border-radius: 6px; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; flex-shrink: 0; }
-    .item-body { padding: 0 16px 16px; }
-    .btn-add { padding: 7px 16px; background: var(--accent); color: #fff; border: none; border-radius: 7px; font-size: 12px; font-weight: 700; cursor: pointer; }
-    .btn-del { padding: 3px 9px; background: var(--rosePale); color: var(--danger); border: none; border-radius: 5px; cursor: pointer; font-size: 11px; }
-    .btn-green { padding: 8px 18px; background: linear-gradient(135deg, var(--accent), var(--accentDark)); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; }
+/* Tab nav */
+#tabnav{display:flex;overflow-x:auto;border-bottom:2px solid var(--border);background:var(--surface);flex-shrink:0;scrollbar-width:none;}
+#tabnav::-webkit-scrollbar{display:none;}
+.tbtn{padding:8px 11px;border:none;border-bottom:3px solid transparent;background:transparent;color:var(--mid);font-size:11px;font-weight:500;white-space:nowrap;display:flex;align-items:center;gap:3px;transition:all .15s;}
+.tbtn.act{border-bottom-color:var(--accent);background:var(--apl);color:var(--adk);font-weight:700;}
+#tcontent{flex:1;overflow-y:auto;padding:20px 24px;-webkit-overflow-scrolling:touch;}
 
-    /* Loading */
-    #loading { display: flex; height: 100vh; align-items: center; justify-content: center; flex-direction: column; gap: 16px; background: var(--bg); }
+/* Sections */
+.sec{margin-bottom:24px;}
+.sec-hdr{display:flex;align-items:center;gap:9px;margin-bottom:13px;}
+.sec-num{width:26px;height:26px;border-radius:6px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;}
+.sec-ttl{font-size:12px;font-weight:800;color:var(--brown);text-transform:uppercase;letter-spacing:.08em;}
+.sec-body{background:var(--surface);border:1.5px solid var(--border);border-radius:11px;padding:16px 18px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:0 18px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 14px;}
 
-    /* Informe */
-    pre { background: var(--surfaceAlt); border: 1px solid var(--border); border-radius: 9px; padding: 18px; font-size: 12px; line-height: 1.7; color: var(--brown); font-family: 'Courier New', monospace; white-space: pre-wrap; word-break: break-word; }
+/* Fields */
+.fld{margin-bottom:14px;}
+.fld label{display:block;font-size:10px;font-weight:700;color:var(--mid);margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em;}
+.fld .hint{font-size:10px;color:var(--light);margin-top:3px;font-style:italic;}
 
-    /* Responsive móvil */
-    @media (max-width: 700px) {
-      #sidebar { width: 100%; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; transform: translateX(-100%); transition: transform 0.3s; }
-      #sidebar.open { transform: translateX(0); }
-      #main { width: 100%; }
-      .grid2 { grid-template-columns: 1fr; }
-      #tab-content { padding: 16px; }
-      #patient-header { padding: 10px 14px; }
-      #btn-menu { display: flex !important; }
-    }
-    #btn-menu { display: none; padding: 5px 10px; background: var(--accent); color: #fff; border: none; border-radius: 7px; font-size: 16px; cursor: pointer; }
-    #overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 99; }
-    #overlay.open { display: block; }
-  </style>
+/* Multichk */
+.mchk{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.cbtn{padding:4px 10px;border-radius:18px;font-size:11px;border:1.5px solid var(--border);background:var(--surface);color:var(--mid);}
+.cbtn.on{border-color:var(--accent);background:var(--apl);color:var(--adk);font-weight:700;}
+
+/* Scale */
+.scrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px;}
+.sbtn{width:34px;height:34px;border-radius:50%;border:2px solid var(--border);background:var(--surface);color:var(--mid);font-size:12px;font-weight:700;flex-shrink:0;}
+.sbtn.on{border-color:var(--accent);background:var(--accent);color:#fff;}
+.slbl{font-size:11px;color:var(--adk);font-weight:700;margin-left:5px;}
+
+/* Item cards (sessions/evals) */
+.icard{background:var(--alt);border-radius:9px;margin-bottom:9px;border:1px solid var(--border);overflow:hidden;}
+.ihdr{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;cursor:pointer;}
+.inum{width:24px;height:24px;border-radius:5px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;}
+.ibody{padding:0 14px 14px;display:none;}
+
+/* Buttons */
+.btn-add{padding:6px 14px;background:var(--accent);color:#fff;border:none;border-radius:7px;font-size:11px;font-weight:700;}
+.btn-del{padding:3px 8px;background:var(--rpl);color:var(--danger);border:none;border-radius:5px;font-size:11px;}
+.btn-green{padding:8px 18px;background:linear-gradient(135deg,var(--accent),var(--adk));color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;}
+.btn-word{padding:8px 18px;background:linear-gradient(135deg,#2B5797,#1a3a6e);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;}
+
+/* DSM modal */
+#dsm-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;padding:20px;}
+#dsm-modal.open{display:flex;}
+#dsm-box{background:var(--surface);border-radius:14px;max-width:580px;width:100%;max-height:80vh;overflow-y:auto;padding:24px;}
+#dsm-box h3{font-size:15px;color:var(--brown);margin-bottom:6px;}
+#dsm-box .dsm-code{font-size:11px;color:var(--accent);font-weight:700;margin-bottom:12px;}
+#dsm-box .dsm-body{font-size:12px;color:var(--mid);line-height:1.7;}
+#dsm-close{float:right;padding:4px 10px;background:var(--rpl);color:var(--danger);border:none;border-radius:6px;font-size:12px;font-weight:700;}
+
+/* Upload area */
+.upload-area{border:2px dashed var(--border);border-radius:9px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;margin-top:8px;}
+.upload-area:hover{border-color:var(--accent);background:var(--apl);}
+.uploaded-file{display:flex;align-items:center;gap:8px;padding:8px 11px;background:var(--alt);border-radius:7px;margin-top:6px;font-size:12px;}
+
+/* Loading */
+#loading{display:flex;height:100vh;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:var(--bg);}
+
+/* Informe */
+pre{background:var(--alt);border:1px solid var(--border);border-radius:9px;padding:16px;font-size:11px;line-height:1.7;color:var(--brown);font-family:'Courier New',monospace;white-space:pre-wrap;word-break:break-word;}
+
+/* Overlay */
+#overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:99;}
+#overlay.open{display:block;}
+#btn-menu{display:none;padding:5px 10px;background:var(--accent);color:#fff;border:none;border-radius:7px;font-size:16px;}
+
+@media(max-width:720px){
+  #sidebar{width:100%;position:fixed;top:0;left:0;height:100vh;z-index:100;transform:translateX(-100%);transition:transform .3s;}
+  #sidebar.open{transform:translateX(0);}
+  .g2,.g3{grid-template-columns:1fr;}
+  #tcontent{padding:14px;}
+  #btn-menu{display:flex!important;}
+}
+</style>
 </head>
 <body>
 
 <div id="loading">
-  <div style="font-size:48px">🧠</div>
-  <div style="font-size:15px;color:var(--textMid);font-weight:600">Cargando PsicoHC...</div>
-  <div style="font-size:12px;color:var(--textLight)">Psicóloga Carol</div>
+  <div style="font-size:46px">🧠</div>
+  <div style="font-size:14px;color:var(--mid);font-weight:600">Cargando PsicoHC...</div>
+  <div style="font-size:11px;color:var(--light)">Psic. Carol Castillo</div>
 </div>
 
 <div id="app" style="display:none">
-  <div id="overlay" onclick="closeSidebar()"></div>
+<div id="overlay" onclick="closeSB()"></div>
 
-  <!-- SIDEBAR -->
-  <div id="sidebar">
-    <div id="sidebar-header">
-      <div id="logo-row">
-        <div id="logo-icon">🧠</div>
-        <div>
-          <div style="font-size:15px;font-weight:800;color:var(--brown);line-height:1">PsicoHC</div>
-          <div style="font-size:10px;color:var(--rose);font-weight:700;margin-top:2px">Psicóloga Carol 💚💛🩷</div>
-        </div>
+<!-- DSM Modal -->
+<div id="dsm-modal">
+  <div id="dsm-box">
+    <button id="dsm-close" onclick="closeDSM()">✕ Cerrar</button>
+    <div id="dsm-code" class="dsm-code"></div>
+    <h3 id="dsm-title"></h3>
+    <div id="dsm-body" class="dsm-body"></div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div id="sh">
+    <div id="logo-row">
+      <div id="logo-icon">🧠</div>
+      <div>
+        <div style="font-size:14px;font-weight:800;color:var(--brown);line-height:1">PsicoHC</div>
+        <div style="font-size:10px;color:var(--rose);font-weight:700;margin-top:2px">Carol Castillo 💚💛🩷</div>
       </div>
-      <div id="save-status">☁️ Guardado en la nube</div>
-      <button id="btn-new" onclick="createPatient()">+ Nueva Historia Clínica</button>
     </div>
-    <div id="search-wrap">
-      <input id="search" placeholder="🔍 Buscar paciente..." oninput="renderList()" />
-    </div>
-    <div id="patient-list"></div>
-    <div id="sidebar-footer" id="count-label">0 historias clínicas</div>
+    <div id="save-st">☁️ Guardado en la nube</div>
+    <button id="btn-new" onclick="createPatient()">+ Nueva Historia Clínica</button>
+  </div>
+  <div id="srch-wrap"><input id="srch" placeholder="🔍 Buscar paciente..." oninput="renderList()"/></div>
+  <div id="plist"></div>
+  <div id="sfoot">0 historias clínicas</div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="welcome">
+    <div style="font-size:52px">🧠</div>
+    <div style="font-size:20px;font-weight:800;color:var(--brown)">PsicoHC</div>
+    <div style="font-size:13px;color:var(--rose);font-weight:700">Psic. Carol Castillo · C.I. 21.578.572 · FPV 11064 💚💛🩷</div>
+    <div style="font-size:12px;color:var(--mid);max-width:360px;text-align:center;line-height:1.7">Selecciona un paciente o crea una nueva historia clínica.</div>
+    <button class="btn-green" onclick="createPatient()">+ Nueva Historia Clínica</button>
+    <div style="margin-top:6px;padding:7px 14px;background:var(--ypl);border:1px solid var(--yellow);border-radius:8px;font-size:11px;color:var(--mid);text-align:center">☁️ Datos guardados automáticamente en Google Cloud</div>
   </div>
 
-  <!-- MAIN -->
-  <div id="main">
-    <!-- Bienvenida -->
-    <div id="welcome">
-      <div style="font-size:56px">🧠</div>
-      <div style="font-size:22px;font-weight:800;color:var(--brown)">PsicoHC</div>
-      <div style="font-size:14px;color:var(--rose);font-weight:700">Psicóloga Carol — Psicóloga Familiar 💚💛🩷</div>
-      <div style="font-size:13px;color:var(--textMid);max-width:380px;text-align:center;line-height:1.7">
-        Selecciona un paciente del panel o crea una nueva historia clínica para comenzar.
+  <div id="pview">
+    <div id="phdr">
+      <button id="btn-menu" onclick="openSB()">☰</button>
+      <button id="btn-back" onclick="showWelcome()">← Volver</button>
+      <div>
+        <div id="hdr-hc" style="font-size:10px;font-weight:800;color:var(--accent);letter-spacing:.14em"></div>
+        <div id="hdr-name" style="font-size:14px;font-weight:800;color:var(--brown)"></div>
       </div>
-      <button class="btn-green" onclick="createPatient()">+ Nueva Historia Clínica</button>
-      <div style="margin-top:8px;padding:8px 16px;background:var(--yellowPale);border:1px solid var(--yellow);border-radius:8px;font-size:11px;color:var(--textMid);text-align:center">
-        ☁️ Datos guardados automáticamente en la nube de Google
-      </div>
+      <div id="hdr-date" style="margin-left:auto;font-size:10px;color:var(--light)"></div>
     </div>
-
-    <!-- Vista paciente -->
-    <div id="patient-view" style="display:none;flex:1;flex-direction:column;min-width:0">
-      <div id="patient-header">
-        <button id="btn-menu" onclick="openSidebar()">☰</button>
-        <button id="btn-back" onclick="showWelcome()">← Volver</button>
-        <div>
-          <div id="hdr-hc" style="font-size:10px;font-weight:800;color:var(--accent);letter-spacing:0.14em"></div>
-          <div id="hdr-name" style="font-size:15px;font-weight:800;color:var(--brown)"></div>
-        </div>
-        <div id="hdr-date" style="margin-left:auto;font-size:11px;color:var(--textLight)"></div>
-      </div>
-      <div id="tab-nav"></div>
-      <div id="tab-content"></div>
-    </div>
+    <div id="tabnav"></div>
+    <div id="tcontent"></div>
   </div>
+</div>
 </div>
 
 <script>
 // ── Firebase ──────────────────────────────────────────────────────────────────
-const firebaseConfig = {
-  apiKey: "AIzaSyBHcgxdXFz0vlSIBamTA_4fxd59HQ3qzIY",
-  authDomain: "psicohcpc-c36fc.firebaseapp.com",
-  projectId: "psicohcpc-c36fc",
-  storageBucket: "psicohcpc-c36fc.firebasestorage.app",
-  messagingSenderId: "1063196208857",
-  appId: "1:1063196208857:web:d24d6cf655e7ddd35b58c8"
+const firebaseConfig={
+  apiKey:"AIzaSyBHcgxdXFz0vlSIBamTA_4fxd59HQ3qzIY",
+  authDomain:"psicohcpc-c36fc.firebaseapp.com",
+  projectId:"psicohcpc-c36fc",
+  storageBucket:"psicohcpc-c36fc.firebasestorage.app",
+  messagingSenderId:"1063196208857",
+  appId:"1:1063196208857:web:d24d6cf655e7ddd35b58c8"
 };
 firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+const db=firebase.firestore();
+const storage=firebase.storage();
 
-// ── Estado global ─────────────────────────────────────────────────────────────
-let patients = [];
-let selectedId = null;
-let activeTab = "identificacion";
-let yearCounter = {};
-let saveTimer = null;
+// ── State ─────────────────────────────────────────────────────────────────────
+let patients=[],selectedId=null,activeTab="identificacion",yearCounter={},saveTimer=null;
+const uid=()=>Math.random().toString(36).slice(2,9);
+const today=()=>new Date().toISOString().split("T")[0];
+const nowDate=()=>new Date().toLocaleDateString("es-VE",{day:"2-digit",month:"long",year:"numeric"});
+const fmtDate=d=>d?new Date(d+"T00:00:00").toLocaleDateString("es-VE",{day:"2-digit",month:"long",year:"numeric"}):"—";
+const esc=s=>String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 
-// ── Utilidades ────────────────────────────────────────────────────────────────
-const uid = () => Math.random().toString(36).slice(2,9);
-const today = () => new Date().toISOString().split("T")[0];
-const fmtDate = d => d ? new Date(d+"T00:00:00").toLocaleDateString("es-VE",{day:"2-digit",month:"long",year:"numeric"}) : "—";
-
-// ── Paciente vacío ────────────────────────────────────────────────────────────
-function emptyPatient() {
-  return {
-    id: uid(), hcCode: "",
-    nombre:"", edad:"", cedula:"", fechaNac:"", lugarNac:"",
-    sexo:"", direccion:"", gradoEscolar:"", institucion:"", fechaApertura:today(),
-    repNombre:"", repParentesco:"", repTelefono:"", personasEnCasa:"", convivientes:[],
+// ── Empty patient ─────────────────────────────────────────────────────────────
+function emptyP(){
+  return{
+    id:uid(),hcCode:"",
+    nombre:"",edad:"",cedula:"",fechaNac:"",lugarNac:"",sexo:"",direccion:"",
+    gradoEscolar:"",institucion:"",fechaApertura:today(),
+    repNombre:"",repParentesco:"",repTelefono:"",personasEnCasa:"",convivientes:[],
     motivoConsulta:"",
-    embarazoPlaneado:"", cuidadosPrenatales:"", saludMadre:"", complicacionesEmbarazo:[],
-    tipoNacimiento:"", semanasEmbarazo:"", tipoParto:"", complicacionesNacimiento:[],
-    descripcionBebe:[], edadCamino:"", primerasPalabras:"", desarrolloLenguaje:"", controlEsfinteres:"",
-    seCalmafacilmente:"", expresaCulpa:"", hiperactividad:"",
-    emocionesFrecuentes:[], miedosPersistentes:[], sintomasAnsiedad:[], pensamientosNegativos:"",
-    asistenciaEscolar:"", relacionCompaneros:"", relacionDocentes:"",
-    comportamientoClase:"", referidoConducta:"", cursoPreescolar:"", dificultadesAcademicas:[],
-    horaDormir:"", horaDespertar:"", habSueno:[], habAlimentacion:[], habAutonomia:[],
-    relacionPadres:"", respuestaLimites:"", vinculosPositivos:[], reaccionFrustracion:"",
+    embarazoPlaneado:"",cuidadosPrenatales:"",saludMadre:"",
+    complicacionesEmbarazo:[],otrasCompEmbarazo:"",
+    tipoNacimiento:"",semanasEmbarazo:"",tipoParto:"",
+    pesoNacer:"",tallaNacer:"",complicacionesNacimiento:[],
+    primeraSemanaNac:[],otrosPrimeraSemanaNac:"",
+    descripcionBebe:[],otrosDescBebe:"",preocupacionEtapaTemprana:"",
+    edadCamino:"",controlCefalico:"",primerasPalabras:"",edadPrimerasPalabras:"",
+    desarrolloLenguaje:"",controlEsfinteresDiurno:"",controlEsfinteresNocturno:"",
+    seCalmafacilmente:"",desregulacion:"",
+    sensibilidadRuidos:"",sensibilidadLuces:"",sensibilidadTexturas:"",
+    alimentacionSelectivaTextura:"",sensibilidadOlores:"",busquedaEstimulos:"",
+    emocionesFrecuentes:[],miedosPersistentes:[],otrosMiedos:"",
+    sintomasAnsiedad:[],pensamientosNegativos:"",
+    asistenciaEscolar:"",bullying:"",relacionCompaneros:"",relacionDocentes:"",
+    comportamientoClase:[],referidoConducta:"",cursoPreescolar:"",dificultadesAcademicas:[],
+    horaDormir:"",horaDespertar:"",habSueno:[],habAlimentacion:[],alimentoRechazo:"",
+    habAutonomia:[],responsabilidadCasa:"",actividadesExtracurriculares:"",
+    relacionPadres:"",respuestaLimites:"",vinculosPositivos:[],nombresVinculos:"",
+    reaccionFrustracion:"",conductasEnCasa:[],contextoConductas:[],
     intervencionesPrevias:[],
-    observacionClinica:"", hipotesisClinica:"", planEvaluacion:[],
-    evaluaciones:[], sesiones:[],
-    diagnostico:[], impresionDiagnostica:"",
-    createdAt: today()
+    diagnosticoPrevio:"",medicacionActual:"",especialistaMedicacion:"",
+    terapiasHistorial:[],diagnosticoEspecialista:"",informesPrevios:[],
+    observacionActitud:"",observacionInteraccion:"",observacionLenguaje:"",
+    observacionJuego:"",observacionEstadoEmocional:"",observacionInsight:"",
+    observacionDisposicion:"",observacionNotas:"",
+    hipotesisClinica:"",planEvaluacion:[],otrasPruebas:"",
+    evaluaciones:[],sesiones:[],
+    diagnostico:[],impresionDiagnostica:"",
+    createdAt:today()
   };
 }
 
-// ── Guardar en Firebase ───────────────────────────────────────────────────────
-function savePatient(p) {
-  setSaveStatus("saving");
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(async () => {
-    try {
-      await db.collection("pacientes").doc(p.id).set(p);
-      setSaveStatus("saved");
-    } catch(e) { setSaveStatus("error"); }
-  }, 800);
+// ── Save ──────────────────────────────────────────────────────────────────────
+function saveP(p){
+  setSS("saving");clearTimeout(saveTimer);
+  saveTimer=setTimeout(async()=>{
+    try{await db.collection("pacientes").doc(p.id).set(p);setSS("saved");}
+    catch(e){setSS("error");}
+  },900);
 }
-
-function setSaveStatus(s) {
-  const el = document.getElementById("save-status");
-  if (!el) return;
-  if (s==="saving") { el.style.color="var(--yellow)"; el.textContent="💾 Guardando..."; }
-  else if (s==="error") { el.style.color="var(--danger)"; el.textContent="⚠️ Error al guardar"; }
-  else { el.style.color="var(--accent)"; el.textContent="☁️ Guardado en la nube"; }
+function setSS(s){
+  const el=document.getElementById("save-st");if(!el)return;
+  if(s==="saving"){el.style.color="var(--yellow)";el.textContent="💾 Guardando...";}
+  else if(s==="error"){el.style.color="var(--danger)";el.textContent="⚠️ Error al guardar";}
+  else{el.style.color="var(--accent)";el.textContent="☁️ Guardado en la nube";}
 }
+function getP(){return patients.find(p=>p.id===selectedId);}
+function upd(f,v){const p=getP();if(!p)return;p[f]=v;saveP({...p});}
+function updRender(f,v){upd(f,v);renderTab();}
 
-// ── Paciente actual ───────────────────────────────────────────────────────────
-function getSelected() { return patients.find(p => p.id === selectedId); }
-
-function updateField(field, value) {
-  const p = getSelected();
-  if (!p) return;
-  p[field] = value;
-  savePatient({...p});
-}
-
-// ── Crear paciente ────────────────────────────────────────────────────────────
-async function createPatient() {
-  const year = new Date().getFullYear();
-  const next = (yearCounter[year]||0) + 1;
-  yearCounter[year] = next;
+// ── Create / Delete ───────────────────────────────────────────────────────────
+async function createPatient(){
+  const yr=new Date().getFullYear();
+  const nx=(yearCounter[yr]||0)+1;yearCounter[yr]=nx;
   await db.collection("meta").doc("yearCounter").set(yearCounter);
-  const p = emptyPatient();
-  p.hcCode = `HC-${year}-${String(next).padStart(3,"0")}`;
+  const p=emptyP();p.hcCode=`HC-${yr}-${String(nx).padStart(3,"0")}`;
   patients.unshift(p);
   await db.collection("pacientes").doc(p.id).set(p);
-  selectPatient(p.id);
-  renderList();
-  closeSidebar();
+  selectP(p.id);renderList();closeSB();
 }
-
-// ── Eliminar paciente ─────────────────────────────────────────────────────────
-async function deletePatient(id) {
-  if (!confirm("¿Eliminar esta historia clínica? No se puede deshacer.")) return;
+async function deletePatient(id){
+  if(!confirm("¿Eliminar esta historia clínica? No se puede deshacer."))return;
   await db.collection("pacientes").doc(id).delete();
-  patients = patients.filter(p => p.id !== id);
-  if (selectedId === id) showWelcome();
+  patients=patients.filter(p=>p.id!==id);
+  if(selectedId===id)showWelcome();
   renderList();
 }
-
-// ── Seleccionar paciente ──────────────────────────────────────────────────────
-function selectPatient(id) {
-  selectedId = id;
-  activeTab = "identificacion";
-  const p = getSelected();
-  if (!p) return;
-  document.getElementById("welcome").style.display = "none";
-  document.getElementById("patient-view").style.display = "flex";
-  document.getElementById("hdr-hc").textContent = p.hcCode;
-  document.getElementById("hdr-name").textContent = p.nombre || "Paciente sin nombre";
-  document.getElementById("hdr-date").textContent = "Apertura: " + fmtDate(p.fechaApertura);
-  renderTabs();
-  renderTab();
-  closeSidebar();
+function selectP(id){
+  selectedId=id;activeTab="identificacion";
+  const p=getP();if(!p)return;
+  document.getElementById("welcome").style.display="none";
+  document.getElementById("pview").style.display="flex";
+  document.getElementById("hdr-hc").textContent=p.hcCode;
+  document.getElementById("hdr-name").textContent=p.nombre||"Paciente sin nombre";
+  document.getElementById("hdr-date").textContent="Apertura: "+fmtDate(p.fechaApertura);
+  renderTabs();renderTab();closeSB();
+}
+function showWelcome(){
+  selectedId=null;
+  document.getElementById("welcome").style.display="flex";
+  document.getElementById("pview").style.display="none";
 }
 
-function showWelcome() {
-  selectedId = null;
-  document.getElementById("welcome").style.display = "flex";
-  document.getElementById("patient-view").style.display = "none";
-}
-
-// ── Lista de pacientes ────────────────────────────────────────────────────────
-function renderList() {
-  const q = document.getElementById("search").value.toLowerCase();
-  const filtered = patients.filter(p =>
-    !q || (p.nombre||"").toLowerCase().includes(q) ||
-    (p.hcCode||"").toLowerCase().includes(q) ||
-    (p.cedula||"").includes(q)
-  );
-  const el = document.getElementById("patient-list");
-  el.innerHTML = filtered.length === 0
-    ? `<div style="text-align:center;padding:32px 0;color:var(--textLight);font-size:12px">${patients.length===0?"Crea la primera historia clínica 🌟":"Sin resultados."}</div>`
-    : filtered.map(p => `
-      <div class="patient-card" onclick="selectPatient('${p.id}')">
-        <button class="card-del" onclick="event.stopPropagation();deletePatient('${p.id}')">✕</button>
-        <div class="card-hc">${p.hcCode}</div>
-        <div class="card-name">${p.nombre||"Sin nombre"}</div>
-        <div class="card-sub">${p.edad?p.edad+" años":"Edad no registrada"}${p.gradoEscolar?" · "+p.gradoEscolar:""}</div>
-        <div class="card-date">Apertura: ${fmtDate(p.fechaApertura)} · ${(p.sesiones||[]).length} sesiones</div>
-        ${p.diagnostico&&p.diagnostico.length?`<div class="card-tags">${p.diagnostico.slice(0,3).map(d=>`<span class="card-tag">${d}</span>`).join("")}</div>`:""}
-      </div>`).join("");
-  document.getElementById("sidebar-footer").textContent = `${patients.length} historia${patients.length!==1?"s":""} clínica${patients.length!==1?"s":""}`;
+// ── List ──────────────────────────────────────────────────────────────────────
+function renderList(){
+  const q=(document.getElementById("srch").value||"").toLowerCase();
+  const f=patients.filter(p=>!q||(p.nombre||"").toLowerCase().includes(q)||(p.hcCode||"").toLowerCase().includes(q)||(p.cedula||"").includes(q));
+  document.getElementById("plist").innerHTML=f.length===0
+    ?`<div style="text-align:center;padding:28px 0;color:var(--light);font-size:12px">${patients.length===0?"Crea la primera historia clínica 🌟":"Sin resultados."}</div>`
+    :f.map(p=>`<div class="pcard" onclick="selectP('${p.id}')">
+      <button class="pc-del" onclick="event.stopPropagation();deletePatient('${p.id}')">✕</button>
+      <div class="pc-hc">${p.hcCode}</div>
+      <div class="pc-name">${esc(p.nombre)||"Sin nombre"}</div>
+      <div class="pc-sub">${p.edad?p.edad+" años":"Edad no registrada"}${p.gradoEscolar?" · "+p.gradoEscolar:""}</div>
+      <div class="pc-date">Apertura: ${fmtDate(p.fechaApertura)} · ${(p.sesiones||[]).length} sesiones</div>
+      ${p.diagnostico&&p.diagnostico.length?`<div class="pc-tags">${p.diagnostico.slice(0,3).map(d=>`<span class="pc-tag">${d}</span>`).join("")}</div>`:""}
+    </div>`).join("");
+  document.getElementById("sfoot").textContent=`${patients.length} historia${patients.length!==1?"s":""} clínica${patients.length!==1?"s":""}`;
 }
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
-const TABS = [
-  {key:"identificacion",label:"Identificación",icon:"👤"},
-  {key:"representante",label:"Representante",icon:"👪"},
-  {key:"motivo",label:"Motivo & Desarrollo",icon:"🌱"},
-  {key:"emocional",label:"Emocional",icon:"💭"},
-  {key:"escolar",label:"Escolar",icon:"🏫"},
-  {key:"habitos",label:"Hábitos",icon:"🌙"},
-  {key:"familiar",label:"Familiar",icon:"🏠"},
-  {key:"clinico",label:"Clínico",icon:"🔍"},
-  {key:"evaluaciones",label:"Evaluaciones",icon:"📊"},
-  {key:"sesiones",label:"Sesiones",icon:"📅"},
-  {key:"diagnostico",label:"Diagnóstico",icon:"🩺"},
-  {key:"informe",label:"Informe",icon:"📄"},
+const TABS=[
+  {k:"identificacion",l:"Identificación",i:"👤"},
+  {k:"representante",l:"Representante",i:"👪"},
+  {k:"embarazo",l:"Embarazo y Nacimiento",i:"🤰"},
+  {k:"desarrollo",l:"Desarrollo",i:"🌱"},
+  {k:"emocional",l:"Emocional",i:"💭"},
+  {k:"escolar",l:"Escolar",i:"🏫"},
+  {k:"habitos",l:"Hábitos",i:"🌙"},
+  {k:"familiar",l:"Familiar",i:"🏠"},
+  {k:"antecedentes",l:"Antecedentes",i:"📋"},
+  {k:"clinico",l:"Observación Clínica",i:"🔍"},
+  {k:"hipotesis",l:"Hipótesis y Plan",i:"🧩"},
+  {k:"evaluaciones",l:"Evaluaciones",i:"📊"},
+  {k:"sesiones",l:"Sesiones",i:"📅"},
+  {k:"diagnostico",l:"Diagnóstico",i:"🩺"},
+  {k:"informe",l:"Informe",i:"📄"},
 ];
-
-function renderTabs() {
-  document.getElementById("tab-nav").innerHTML = TABS.map(t =>
-    `<button class="tab-btn${activeTab===t.key?" active":""}" onclick="switchTab('${t.key}')"><span>${t.icon}</span>${t.label}</button>`
+function renderTabs(){
+  document.getElementById("tabnav").innerHTML=TABS.map(t=>
+    `<button class="tbtn${activeTab===t.k?" act":""}" onclick="switchTab('${t.k}')">${t.i} ${t.l}</button>`
   ).join("");
 }
+function switchTab(k){activeTab=k;renderTabs();renderTab();}
 
-function switchTab(key) {
-  activeTab = key;
-  renderTabs();
-  renderTab();
+// ── HTML helpers ──────────────────────────────────────────────────────────────
+function sec(num,title,body){
+  return`<div class="sec"><div class="sec-hdr"><div class="sec-num">${num}</div><div class="sec-ttl">${title}</div></div><div class="sec-body">${body}</div></div>`;
 }
+function fld(label,inner,hint=""){
+  return`<div class="fld"><label>${label}</label>${inner}${hint?`<div class="hint">${hint}</div>`:""}</div>`;
+}
+function inp(f,v,type="text",ph=""){
+  return`<input type="${type}" value="${esc(v)}" placeholder="${ph}" oninput="upd('${f}',this.value)">`;
+}
+function ta(f,v,rows=3,ph=""){
+  return`<textarea rows="${rows}" placeholder="${ph}" oninput="upd('${f}',this.value)">${esc(v)}</textarea>`;
+}
+function sel(f,v,opts){
+  return`<select onchange="upd('${f}',this.value)"><option value="">Seleccionar...</option>${opts.map(o=>`<option value="${o}"${v===o?" selected":""}>${o}</option>`).join("")}</select>`;
+}
+function mchk(label,f,v=[],opts,hint=""){
+  return`<div class="fld"><label>${label}</label><div class="mchk">${opts.map(o=>`<button class="cbtn${v.includes(o)?" on":""}" onclick="toggleArr('${f}','${o}')">${o}</button>`).join("")}</div>${hint?`<div class="hint">${hint}</div>`:""}</div>`;
+}
+function scale(label,f,v,lbls=["Nunca","Rara vez","A veces","Frecuentemente","Siempre"]){
+  const btns=Array.from({length:lbls.length},(_,i)=>`<button class="sbtn${String(i)===String(v)?" on":""}" onclick="upd('${f}','${i}')">${i}</button>`).join("");
+  const lbl=v!==""&&lbls[parseInt(v)]?`<span class="slbl">${lbls[parseInt(v)]}</span>`:"";
+  return`<div class="fld"><label>${label}</label><div class="scrow">${btns}${lbl}</div><div class="hint">0 = ${lbls[0]} &nbsp;|&nbsp; ${lbls.length-1} = ${lbls[lbls.length-1]}</div></div>`;
+}
+function g2(c){return`<div class="g2">${c}</div>`;}
+function g3(c){return`<div class="g3">${c}</div>`;}
 
-// ── Helpers HTML ──────────────────────────────────────────────────────────────
-function field(label, inputHtml) {
-  return `<div class="field"><label>${label}</label>${inputHtml}</div>`;
-}
-function inp(fld, val, type="text", ph="") {
-  return `<input type="${type}" value="${escHtml(val||"")}" placeholder="${ph}" onchange="updateField('${fld}',this.value)" oninput="updateField('${fld}',this.value)">`;
-}
-function ta(fld, val, rows=4, ph="") {
-  return `<div class="field"><label></label><textarea rows="${rows}" placeholder="${ph}" onchange="updateField('${fld}',this.value)" oninput="updateField('${fld}',this.value)">${escHtml(val||"")}</textarea></div>`;
-}
-function taLabel(label, fld, val, rows=4, ph="") {
-  return `<div class="field"><label>${label}</label><textarea rows="${rows}" placeholder="${ph}" onchange="updateField('${fld}',this.value)" oninput="updateField('${fld}',this.value)">${escHtml(val||"")}</textarea></div>`;
-}
-function sel(fld, val, opts) {
-  return `<select onchange="updateField('${fld}',this.value)"><option value="">Seleccionar...</option>${opts.map(o=>`<option value="${o}"${val===o?" selected":""}>${o}</option>`).join("")}</select>`;
-}
-function multiChk(label, fld, val=[], opts) {
-  return `<div class="field"><label>${label}</label><div class="multichk">${opts.map(o=>`<button class="chk-btn${val.includes(o)?" on":""}" onclick="toggleArr('${fld}','${o}')">${o}</button>`).join("")}</div></div>`;
-}
-function scale(label, fld, val, max=4, labels=[]) {
-  const btns = Array.from({length:max+1},(_,i)=>`<button class="scale-btn${String(i)===String(val)?" on":""}" onclick="updateField('${fld}','${i}')">${i}</button>`).join("");
-  const lbl = val!==""&&labels[parseInt(val)] ? `<span class="scale-label">${labels[parseInt(val)]}</span>` : "";
-  return `<div class="field"><label>${label}</label><div class="scale-row">${btns}${lbl}</div></div>`;
-}
-function section(num, title, content) {
-  return `<div class="section"><div class="section-header"><div class="section-num">${num}</div><div class="section-title">${title}</div></div><div class="section-body">${content}</div></div>`;
-}
-function g2(content) { return `<div class="grid2">${content}</div>`; }
-function escHtml(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function toggleArr(f,opt){const p=getP();if(!p)return;const a=p[f]||[];p[f]=a.includes(opt)?a.filter(x=>x!==opt):[...a,opt];saveP({...p});renderTab();}
 
-function toggleArr(fld, opt) {
-  const p = getSelected();
-  if (!p) return;
-  const arr = p[fld]||[];
-  p[fld] = arr.includes(opt) ? arr.filter(x=>x!==opt) : [...arr, opt];
-  savePatient({...p});
-  renderTab();
-}
+// ── Tabs content ──────────────────────────────────────────────────────────────
+function renderTab(){
+  const p=getP();if(!p)return;
+  const el=document.getElementById("tcontent");
 
-const SL = ["Nunca","Rara vez","A veces","Frecuentemente","Siempre"];
-
-// ── Render de cada pestaña ────────────────────────────────────────────────────
-function renderTab() {
-  const p = getSelected();
-  if (!p) return;
-  const el = document.getElementById("tab-content");
-
-  if (activeTab==="identificacion") {
-    el.innerHTML = section(1,"Identificación del Paciente",
+  if(activeTab==="identificacion"){
+    el.innerHTML=sec(1,"Identificación del Paciente",
       g2(
-        field("Nombre completo",inp("nombre",p.nombre))+
-        field("Edad (años)",inp("edad",p.edad,"number"))+
-        field("Cédula de identidad",inp("cedula",p.cedula))+
-        field("Fecha de nacimiento",inp("fechaNac",p.fechaNac,"date"))+
-        field("Lugar de nacimiento",inp("lugarNac",p.lugarNac))+
-        field("Sexo",sel("sexo",p.sexo,["Femenino","Masculino","Otro","Prefiere no especificar"]))+
-        field("Grado escolar",sel("gradoEscolar",p.gradoEscolar,["Preescolar","1er grado","2do grado","3er grado","4to grado","5to grado","6to grado","1er año secundaria","2do año secundaria","3er año secundaria","4to año secundaria","5to año secundaria"]))+
-        field("Institución educativa",inp("institucion",p.institucion))+
-        field("Fecha apertura HC",inp("fechaApertura",p.fechaApertura,"date"))
+        fld("Nombre completo",inp("nombre",p.nombre))+
+        fld("Edad (años)",inp("edad",p.edad,"number"))+
+        fld("Cédula de identidad",inp("cedula",p.cedula))+
+        fld("Fecha de nacimiento",inp("fechaNac",p.fechaNac,"date"))+
+        fld("Lugar de nacimiento",inp("lugarNac",p.lugarNac))+
+        fld("Sexo",sel("sexo",p.sexo,["Femenino","Masculino","Otro","Prefiere no especificar"]))+
+        fld("Grado escolar",sel("gradoEscolar",p.gradoEscolar,[
+          "Primer grupo (Preescolar)","Segundo grupo (Preescolar)","Tercer grupo (Preescolar)",
+          "1er grado","2do grado","3er grado","4to grado","5to grado","6to grado",
+          "1er año de Educación Media","2do año de Educación Media","3er año de Educación Media",
+          "4to año de Educación Diversificada","5to año de Educación Diversificada"
+        ]))+
+        fld("Institución educativa",inp("institucion",p.institucion))+
+        fld("Fecha apertura HC",inp("fechaApertura",p.fechaApertura,"date"))
       )+
-      taLabel("Dirección","direccion",p.direccion,2)
+      fld("Dirección",ta("direccion",p.direccion,2))
     );
   }
 
-  else if (activeTab==="representante") {
-    const convHtml = (p.convivientes||[]).map((c,i)=>`
-      <div class="item-card" style="margin-bottom:10px">
-        <div style="padding:12px 14px">
-          <div style="display:flex;justify-content:space-between;margin-bottom:10px">
-            <strong style="font-size:12px;color:var(--accentDark)">Conviviente #${i+1}</strong>
+  else if(activeTab==="representante"){
+    const cvH=(p.convivientes||[]).map((c,i)=>`
+      <div class="icard">
+        <div style="padding:12px 13px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:9px">
+            <strong style="font-size:11px;color:var(--adk)">Conviviente #${i+1}</strong>
             <button class="btn-del" onclick="delConv(${i})">✕ Eliminar</button>
           </div>
-          <div class="grid2">
-            <div class="field"><label>Nombre y apellido</label><input value="${escHtml(c.nombre||"")}" onchange="updConv(${i},'nombre',this.value)"></div>
-            <div class="field"><label>Edad</label><input type="number" value="${c.edad||""}" onchange="updConv(${i},'edad',this.value)"></div>
-            <div class="field"><label>Ocupación</label><input value="${escHtml(c.ocupacion||"")}" onchange="updConv(${i},'ocupacion',this.value)"></div>
-            <div class="field"><label>Parentesco</label><select onchange="updConv(${i},'parentesco',this.value)"><option value="">Seleccionar...</option>${["Madre","Padre","Hermano/a","Abuelo/a","Otro familiar","No familiar"].map(o=>`<option value="${o}"${c.parentesco===o?" selected":""}>${o}</option>`).join("")}</select></div>
+          <div class="g2">
+            <div class="fld"><label>Nombre y apellido</label><input value="${esc(c.nombre)}" oninput="updConv(${i},'nombre',this.value)"></div>
+            <div class="fld"><label>Edad</label><input type="number" value="${esc(c.edad)}" oninput="updConv(${i},'edad',this.value)"></div>
+            <div class="fld"><label>Ocupación</label><input value="${esc(c.ocupacion)}" oninput="updConv(${i},'ocupacion',this.value)"></div>
+            <div class="fld"><label>Parentesco</label><select onchange="updConv(${i},'parentesco',this.value)"><option value="">Seleccionar...</option>${["Madre","Padre","Hermano/a","Abuelo/a","Tío/a","Otro familiar","No familiar"].map(o=>`<option${c.parentesco===o?" selected":""}>${o}</option>`).join("")}</select></div>
           </div>
+          <div class="fld"><label>¿Convive actualmente con el niño/a?</label><select onchange="updConv(${i},'convive',this.value)"><option value="">Seleccionar...</option>${["Sí, convive","No convive — está en el exterior","No convive — separación/divorcio","No convive — fallecido/a","No convive — otro motivo"].map(o=>`<option${c.convive===o?" selected":""}>${o}</option>`).join("")}</select></div>
+          <div class="fld"><label>Observaciones sobre este conviviente</label><textarea rows="2" oninput="updConv(${i},'obs',this.value)">${esc(c.obs)}</textarea></div>
         </div>
       </div>`).join("");
-    el.innerHTML = section(2,"Datos del Representante",
+    el.innerHTML=sec(2,"Datos del Representante",
       g2(
-        field("Nombre del representante",inp("repNombre",p.repNombre))+
-        field("Parentesco",sel("repParentesco",p.repParentesco,["Madre","Padre","Abuelo/a","Tío/a","Tutor legal","Otro"]))+
-        field("Teléfono",inp("repTelefono",p.repTelefono))+
-        field("Personas en casa",inp("personasEnCasa",p.personasEnCasa,"number"))
+        fld("Nombre del representante",inp("repNombre",p.repNombre))+
+        fld("Parentesco",sel("repParentesco",p.repParentesco,["Madre","Padre","Abuelo/a","Tío/a","Tutor legal","Otro"]))+
+        fld("Teléfono",inp("repTelefono",p.repTelefono))+
+        fld("Personas en casa",inp("personasEnCasa",p.personasEnCasa,"number"))
       )+
       `<div style="margin-top:8px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <label style="font-size:11px;font-weight:700;color:var(--textMid);text-transform:uppercase">Convivientes en casa</label>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px">
+          <label style="font-size:10px;font-weight:700;color:var(--mid);text-transform:uppercase">Personas que conviven en casa</label>
           <button class="btn-add" onclick="addConv()">+ Agregar</button>
-        </div>
-        ${convHtml}
-      </div>`
+        </div>${cvH}</div>`
     );
   }
 
-  else if (activeTab==="motivo") {
-    el.innerHTML =
-      section(3,"Motivo de Consulta", taLabel("Narrativa del representante","motivoConsulta",p.motivoConsulta,5,"Describe el motivo principal de consulta..."))+
-      section(4,"Historia del Embarazo",
+  else if(activeTab==="embarazo"){
+    el.innerHTML=
+      sec(3,"Historia del Embarazo",
         g2(
-          field("¿Embarazo planeado?",sel("embarazoPlaneado",p.embarazoPlaneado,["Sí","No","No sabe"]))+
-          field("Inicio de cuidados prenatales",sel("cuidadosPrenatales",p.cuidadosPrenatales,["Primer trimestre","Segundo trimestre","Tercer trimestre","No recibió controles"]))+
-          field("Salud de la madre",sel("saludMadre",p.saludMadre,["Excelente","Buena","Regular","Complicaciones médicas"]))
+          fld("¿Embarazo planeado?",sel("embarazoPlaneado",p.embarazoPlaneado,["Sí","No","No sabe"]))+
+          fld("Inicio de cuidados prenatales",sel("cuidadosPrenatales",p.cuidadosPrenatales,["Primer trimestre","Segundo trimestre","Tercer trimestre","No recibió controles"]))+
+          fld("Salud de la madre",sel("saludMadre",p.saludMadre,["Excelente","Buena","Regular","Complicaciones médicas"]))
         )+
-        multiChk("Complicaciones durante el embarazo","complicacionesEmbarazo",p.complicacionesEmbarazo,["Hipertensión","Diabetes gestacional","Infecciones","Estrés significativo","Amenaza de aborto","Hospitalización","Ninguna","Otras"])
+        mchk("Complicaciones durante el embarazo","complicacionesEmbarazo",p.complicacionesEmbarazo,[
+          "Hipertensión","Diabetes gestacional","Infecciones","Infecciones urinarias","Estrés significativo",
+          "Amenaza de aborto","Hospitalización","Fiebre alta","Hinchazón excesiva","Aumento anormal de peso",
+          "Caídas","Ninguna","Otras"
+        ])+
+        (p.complicacionesEmbarazo&&p.complicacionesEmbarazo.includes("Otras")?
+          fld("Especificar otras complicaciones",ta("otrasCompEmbarazo",p.otrasCompEmbarazo,2)):"")
       )+
-      section(5,"Nacimiento",
+      sec(4,"Nacimiento",
         g2(
-          field("Término del nacimiento",sel("tipoNacimiento",p.tipoNacimiento,["A término","Prematuro","Postérmino"]))+
-          field("Semanas de gestación",inp("semanasEmbarazo",p.semanasEmbarazo,"number"))+
-          field("Tipo de parto",sel("tipoParto",p.tipoParto,["Natural","Cesárea","Instrumentado (fórceps / ventosa)"]))
+          fld("Término del nacimiento",sel("tipoNacimiento",p.tipoNacimiento,["A término (37-42 semanas)","Prematuro (antes de 37 semanas)","Postérmino (más de 42 semanas)"]),
+            "A término: 37–42 sem | Prematuro: &lt;37 sem | Postérmino: &gt;42 sem")+
+          fld("Semanas de gestación",inp("semanasEmbarazo",p.semanasEmbarazo,"number"))+
+          fld("Tipo de parto",sel("tipoParto",p.tipoParto,["Natural","Cesárea","Instrumentado (fórceps / ventosa)"]))+
+          fld("Peso al nacer (kg)",inp("pesoNacer",p.pesoNacer,"text","ej: 3.2 kg"))+
+          fld("Talla al nacer (cm)",inp("tallaNacer",p.tallaNacer,"text","ej: 50 cm"))
         )+
-        multiChk("Complicaciones al nacer","complicacionesNacimiento",p.complicacionesNacimiento,["Sufrimiento fetal","Incubadora","Bajo peso","Dificultad respiratoria","Ninguna","Otras"])
+        mchk("Complicaciones al nacer","complicacionesNacimiento",p.complicacionesNacimiento,[
+          "Sufrimiento fetal","Incubadora","Bajo peso","Dificultad respiratoria","Ninguna","Otras"
+        ])
       )+
-      section(6,"Desarrollo Temprano",
-        multiChk("¿Cómo era el niño/a como bebé?","descripcionBebe",p.descripcionBebe,["Tranquilo","Activo","Irritable","Lloraba mucho","Dormía bien","Dificultades para dormir"])+
+      sec(5,"Primera Semana de Vida",
+        mchk("Eventos en la primera semana","primeraSemanaNac",p.primeraSemanaNac,[
+          "Necesitó oxígeno","Dificultad respiratoria","Convulsionó","Problemas para alimentarse",
+          "Vómito excesivo","Fiebre","Ictericia (se puso amarillo)","Luces para bilirrubina",
+          "Requirió medicamentos","Hospitalizado","Sin complicaciones"
+        ])+
+        (p.primeraSemanaNac&&p.primeraSemanaNac.includes("Hospitalizado")?
+          fld("¿Cuántos días hospitalizado?",inp("otrosPrimeraSemanaNac",p.otrosPrimeraSemanaNac,"text","Número de días")):"")
+      );
+  }
+
+  else if(activeTab==="desarrollo"){
+    el.innerHTML=
+      sec(6,"Descripción del Bebé (0–2 años)",
+        mchk("¿Cómo era el niño/a como bebé?","descripcionBebe",p.descripcionBebe,[
+          "Tranquilo","Activo","Irritable","Lloraba mucho","Dormía bien","Dificultades para dormir",
+          "Difícil de consolar","Poco contacto visual","Daba sonrisa social","Cólicos frecuentes",
+          "Problemas respiratorios","Infecciones recurrentes de oído","Conductas repetitivas/inusuales",
+          "Se mecía","Se golpeaba la cabeza","Convulsiones"
+        ])+
+        fld("¿Hubo alguna preocupación durante esta etapa?",ta("preocupacionEtapaTemprana",p.preocupacionEtapaTemprana,2,"Escribe aquí cualquier observación importante..."))
+      )+
+      sec(7,"Hitos del Desarrollo",
         g2(
-          field("Edad al caminar solo (meses)",inp("edadCamino",p.edadCamino,"number"))+
-          field("Primeras palabras",sel("primerasPalabras",p.primerasPalabras,["Antes de 12 meses","Entre 12 y 18 meses","Después de 18 meses","Retraso significativo"]))+
-          field("Desarrollo del lenguaje",inp("desarrolloLenguaje",p.desarrolloLenguaje,"text","ej: dificultad con la R"))+
-          field("Control de esfínteres (meses)",inp("controlEsfinteres",p.controlEsfinteres,"number"))
+          fld("Control cefálico",sel("controlCefalico",p.controlCefalico,["A los 2 meses","A los 3 meses","A los 4 meses","Después de los 4 meses","No se observó retraso"]))+
+          fld("Edad al caminar solo (meses)",inp("edadCamino",p.edadCamino,"number"))+
+          fld("Primeras palabras",sel("primerasPalabras",p.primerasPalabras,["Antes de 12 meses","Entre 12 y 18 meses","Después de 18 meses","Retraso significativo"]))+
+          fld("Edad en que dijo primeras palabras (meses)",inp("edadPrimerasPalabras",p.edadPrimerasPalabras,"number"))+
+          fld("Desarrollo del lenguaje actual",inp("desarrolloLenguaje",p.desarrolloLenguaje,"text","ej: dificultad con la R"))+
+          fld("Control esfínteres diurno (meses)",inp("controlEsfinteresDiurno",p.controlEsfinteresDiurno,"number"))+
+          fld("Control esfínteres nocturno (meses)",inp("controlEsfinteresNocturno",p.controlEsfinteresNocturno,"number"))
         )
       );
   }
 
-  else if (activeTab==="emocional") {
-    el.innerHTML = section(7,"Regulación Emocional y Conductual",
-      scale("¿Se calma fácilmente?","seCalmafacilmente",p.seCalmafacilmente,4,SL)+
-      scale("¿Suele expresar culpa o remordimiento?","expresaCulpa",p.expresaCulpa,4,SL)+
-      scale("¿Presenta hiperactividad?","hiperactividad",p.hiperactividad,4,["Nunca","Rara vez","A veces","Frecuentemente","Muy frecuente"])+
-      multiChk("Emociones frecuentes","emocionesFrecuentes",p.emocionesFrecuentes,["Alegría","Miedo","Tristeza","Enojo","Ansiedad","Irritabilidad"])+
-      multiChk("Miedos persistentes","miedosPersistentes",p.miedosPersistentes,["Oscuridad","Estar solo","Animales","Escuela","Separación de padres","Otros"])+
-      multiChk("Síntomas de ansiedad","sintomasAnsiedad",p.sintomasAnsiedad,["Llanto fácil","Preocupación constante","Tensión corporal","Dificultades para dormir","Evitación","Ninguno"])+
-      field("¿Pensamientos negativos o rumiantes?",sel("pensamientosNegativos",p.pensamientosNegativos,["Sí","No","Ocasionalmente"]))
-    );
-  }
-
-  else if (activeTab==="escolar") {
-    el.innerHTML = section(8,"Área Escolar",
-      g2(
-        field("Asistencia escolar",sel("asistenciaEscolar",p.asistenciaEscolar,["Excelente","Regular","Deficiente"]))+
-        field("Relación con compañeros",sel("relacionCompaneros",p.relacionCompaneros,["Positiva","Regular","Conflictiva","Aislado"]))+
-        field("Relación con docentes",sel("relacionDocentes",p.relacionDocentes,["Buena","Regular","Conflictiva"]))+
-        field("Comportamiento en clase",sel("comportamientoClase",p.comportamientoClase,["Atento","Distraído","Inquieto","Desafiante"]))+
-        field("¿Referido por conducta/aprendizaje?",sel("referidoConducta",p.referidoConducta,["Sí","No"]))+
-        field("Curso preescolar",sel("cursoPreescolar",p.cursoPreescolar,["Ninguno","1 nivel","2 niveles","3 niveles"]))
+  else if(activeTab==="emocional"){
+    el.innerHTML=
+      sec(8,"Regulación Emocional",
+        scale("¿Se calma fácilmente ante el malestar?","seCalmafacilmente",p.seCalmafacilmente)+
+        fld("Cuando se desregula, ¿cómo se calma?",sel("desregulacion",p.desregulacion,[
+          "Se calma solo sin ayuda","Necesita que lo ayuden","Le cuesta mucho volver a regularse","Varía según la situación"
+        ]))+
+        scale("¿Suele expresar culpa o remordimiento?","expresaCulpa",p.expresaCulpa)+
+        mchk("Emociones que se manifiestan con más frecuencia","emocionesFrecuentes",p.emocionesFrecuentes,[
+          "Alegría","Miedo","Tristeza","Enojo","Ansiedad","Irritabilidad","Vergüenza","Frustración"
+        ])+
+        mchk("Miedos persistentes","miedosPersistentes",p.miedosPersistentes,[
+          "Oscuridad","Estar solo","Animales","Escuela","Separación de padres","Ruidos fuertes","Otros"
+        ])+
+        (p.miedosPersistentes&&p.miedosPersistentes.includes("Otros")?
+          fld("Especificar otros miedos",inp("otrosMiedos",p.otrosMiedos,"text","Describir...")):"")
       )+
-      multiChk("Dificultades académicas observadas","dificultadesAcademicas",p.dificultadesAcademicas,["Dificultades para leer","Dificultades de comprensión lectora","Ritmo lento de aprendizaje","Dificultades matemáticas","Necesita ayuda constante","Ninguna"])
-    );
-  }
-
-  else if (activeTab==="habitos") {
-    el.innerHTML = section(9,"Hábitos",
-      g2(
-        field("Hora de dormir",inp("horaDormir",p.horaDormir,"time"))+
-        field("Hora de despertar",inp("horaDespertar",p.horaDespertar,"time"))
+      sec(9,"Síntomas de Ansiedad",
+        mchk("Síntomas presentes","sintomasAnsiedad",p.sintomasAnsiedad,[
+          "Llanto fácil","Preocupación constante","Tensión corporal","Dificultades para dormir","Evitación",
+          "Inquietud motora","Evita lugares o situaciones","Se queja de dolores físicos",
+          "Se muerde las uñas","Tics","Rigidez ante los cambios","Ninguno"
+        ])+
+        fld("¿Pensamientos negativos o rumiantes?",sel("pensamientosNegativos",p.pensamientosNegativos,["Sí","No","Ocasionalmente"]))
       )+
-      multiChk("Patrones de sueño","habSueno",p.habSueno,["Duerme solo","Duerme acompañado","Duerme toda la noche","Se despierta varias veces","Tiene rituales de sueño"])+
-      multiChk("Alimentación","habAlimentacion",p.habAlimentacion,["Alimentación balanceada","Come mucho","Come poco","Selectivo con alimentos","Problemas de apetito"])+
-      multiChk("Autonomía","habAutonomia",p.habAutonomia,["Se baña solo","Higiene personal adecuada","Se viste solo","Cumple responsabilidades en casa"])
-    );
-  }
-
-  else if (activeTab==="familiar") {
-    el.innerHTML =
-      section(10,"Relaciones Familiares",
-        g2(
-          field("Relación con los padres",sel("relacionPadres",p.relacionPadres,["Cercana","Regular","Distante","Conflictiva"]))+
-          field("Respuesta a los límites",sel("respuestaLimites",p.respuestaLimites,["Los respeta","Los cuestiona","Se opone frecuentemente"]))+
-          field("Reacción ante la frustración",sel("reaccionFrustracion",p.reaccionFrustracion,["Se retira","Llora","Se enoja","Busca ayuda"]))
-        )+
-        multiChk("Vínculos positivos con familiares","vinculosPositivos",p.vinculosPositivos,["Hermanos","Primos","Abuelos","Cuidadores","Ninguno"])
+      sec(10,"Procesamiento Sensorial",
+        scale("Sensibilidad a ruidos fuertes","sensibilidadRuidos",p.sensibilidadRuidos)+
+        scale("Sensibilidad a luces intensas","sensibilidadLuces",p.sensibilidadLuces)+
+        scale("Sensibilidad a texturas de ropa","sensibilidadTexturas",p.sensibilidadTexturas)+
+        scale("Alimentación selectiva por textura/olor","alimentacionSelectivaTextura",p.alimentacionSelectivaTextura)+
+        scale("Sensibilidad a olores","sensibilidadOlores",p.sensibilidadOlores)+
+        scale("Búsqueda de estímulos constantes (se mueve mucho)","busquedaEstimulos",p.busquedaEstimulos)
       )+
-      section(11,"Intervenciones Previas",
-        multiChk("Intervenciones recibidas anteriormente","intervencionesPrevias",p.intervencionesPrevias,["Psicopedagogía","Terapia psicológica","Terapia del lenguaje","Apoyo escolar","Medicación","Ninguna"])
+      sec(11,"Hiperactividad e Impulsividad",
+        mchk("Conductas observadas","emocionesFrecuentes",p.emocionesFrecuentes,[])+ // placeholder
+        `<div class="fld"><label>Conductas de hiperactividad observadas</label><div class="mchk">
+          ${["Corre y salta constantemente","Le cuesta esperar su turno","Interrumpe conversaciones frecuentemente","Cambia de actividad sin terminar","Habla en exceso","No puede quedarse sentado"].map(o=>`<button class="cbtn${(p.conductasEnCasa||[]).includes(o)?" on":""}" onclick="toggleArr('conductasEnCasa','${o}')">${o}</button>`).join("")}
+        </div></div>`
       );
   }
 
-  else if (activeTab==="clinico") {
-    el.innerHTML =
-      section(12,"Observación Clínica", taLabel("Actitud, interacción, lenguaje, estado emocional, insight, disposición terapéutica","observacionClinica",p.observacionClinica,6,"Registrar observaciones del psicólogo..."))+
-      section(13,"Hipótesis Clínica Inicial", taLabel("Hipótesis preliminares, áreas a explorar, diagnósticos diferenciales","hipotesisClinica",p.hipotesisClinica,5,"Plantear hipótesis clínicas iniciales..."))+
-      section(14,"Plan de Evaluación", multiChk("Procedimientos y pruebas a aplicar","planEvaluacion",p.planEvaluacion,["Conners padres","Conners maestros","MOIDI","Entrevista familiar","Observación clínica","Otras pruebas"]));
-  }
-
-  else if (activeTab==="evaluaciones") {
-    const evHtml = (p.evaluaciones||[]).map((ev,i)=>`
-      <div class="item-card">
-        <div style="padding:14px 16px">
-          <div style="display:flex;justify-content:space-between;margin-bottom:10px">
-            <strong style="font-size:13px;color:var(--accentDark)">Evaluación #${i+1}</strong>
-            <button class="btn-del" onclick="delEval(${i})">Eliminar</button>
-          </div>
-          <div class="grid2">
-            <div class="field"><label>Nombre del test</label><input value="${escHtml(ev.nombre||"")}" onchange="updEval(${i},'nombre',this.value)"></div>
-            <div class="field"><label>Fecha de aplicación</label><input type="date" value="${ev.fecha||""}" onchange="updEval(${i},'fecha',this.value)"></div>
-            <div class="field"><label>Informante</label><select onchange="updEval(${i},'informante',this.value)"><option value="">Seleccionar...</option>${["Padre","Madre","Maestro","Paciente","Psicólogo"].map(o=>`<option value="${o}"${ev.informante===o?" selected":""}>${o}</option>`).join("")}</select></div>
-            <div class="field"><label>Puntaje obtenido</label><input value="${escHtml(ev.puntaje||"")}" onchange="updEval(${i},'puntaje',this.value)"></div>
-            <div class="field"><label>Percentil</label><input value="${escHtml(ev.percentil||"")}" onchange="updEval(${i},'percentil',this.value)"></div>
-          </div>
-          <div class="field"><label>Observaciones clínicas</label><textarea rows="2" onchange="updEval(${i},'observaciones',this.value)">${escHtml(ev.observaciones||"")}</textarea></div>
-        </div>
-      </div>`).join("");
-    el.innerHTML = section(15,"Evaluaciones Psicométricas",
-      `<div style="display:flex;justify-content:flex-end;margin-bottom:14px"><button class="btn-add" onclick="addEval()">+ Nueva evaluación</button></div>
-      ${evHtml || '<div style="text-align:center;padding:32px 0;color:var(--textLight);font-size:13px">No hay evaluaciones registradas aún.</div>'}`
+  else if(activeTab==="escolar"){
+    el.innerHTML=sec(12,"Área Escolar",
+      g2(
+        fld("Asistencia escolar",sel("asistenciaEscolar",p.asistenciaEscolar,["Excelente","Regular","Deficiente"]))+
+        fld("¿Sufre de bullying?",sel("bullying",p.bullying,["No","Sí, es víctima","Sí, es agresor","Sí, ambos roles","Se sospecha"]))+
+        fld("Relación con compañeros",sel("relacionCompaneros",p.relacionCompaneros,["Positiva","Regular","Conflictiva","Aislado"]))+
+        fld("Relación con docentes",sel("relacionDocentes",p.relacionDocentes,["Buena","Regular","Conflictiva"]))+
+        fld("Curso preescolar",sel("cursoPreescolar",p.cursoPreescolar,["No asistió","Primer grupo","Segundo grupo","Tercer grupo"]))+
+        fld("¿Referido por la maestra?",sel("referidoConducta",p.referidoConducta,["No","Sí, por conducta","Sí, por aprendizaje","Sí, por conducta y aprendizaje"]))
+      )+
+      mchk("Comportamiento en clase","comportamientoClase",p.comportamientoClase,[
+        "Atento","Distraído","Inquieto","Desafiante","Desorganizado","Impulsivo","Pasivo"
+      ])+
+      mchk("Dificultades académicas observadas","dificultadesAcademicas",p.dificultadesAcademicas,[
+        "Le cuesta concentrarse","Olvida lo aprendido fácilmente","Dificultades para leer",
+        "Dificultades de comprensión lectora","Problemas para escribir correctamente",
+        "Ritmo más lento que sus compañeros","Dificultades matemáticas","Necesita ayuda constante",
+        "No presenta dificultades académicas"
+      ])
     );
   }
 
-  else if (activeTab==="sesiones") {
-    const sesHtml = [...(p.sesiones||[])].reverse().map((s,ri)=>{
-      const i = (p.sesiones.length-1)-ri;
-      return `<div class="item-card">
-        <div class="item-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
-          <div style="display:flex;align-items:center;gap:10px">
-            <div class="item-num">${p.sesiones.length-ri}</div>
+  else if(activeTab==="habitos"){
+    el.innerHTML=sec(13,"Hábitos y Rutinas",
+      g2(
+        fld("Hora de dormir",inp("horaDormir",p.horaDormir,"time"))+
+        fld("Hora de despertar",inp("horaDespertar",p.horaDespertar,"time"))
+      )+
+      mchk("Patrones de sueño","habSueno",p.habSueno,[
+        "Duerme solo","Duerme acompañado","Duerme toda la noche","Se despierta varias veces",
+        "Tiene rituales de sueño","Le cuesta dormirse","Tiene pesadillas"
+      ])+
+      mchk("Alimentación","habAlimentacion",p.habAlimentacion,[
+        "Alimentación balanceada","Come mucho","Come poco","Selectivo con alimentos",
+        "Problemas de apetito","Necesita supervisión al comer","Rechaza alimentos"
+      ])+
+      (p.habAlimentacion&&p.habAlimentacion.includes("Rechaza alimentos")?
+        fld("¿Qué alimentos rechaza?",ta("alimentoRechazo",p.alimentoRechazo,2,"Describir alimentos que rechaza...")):"")+ 
+      mchk("Autonomía e higiene","habAutonomia",p.habAutonomia,[
+        "Se baña solo","Requiere que le recuerden el baño","Rechaza el baño",
+        "Se lava manos y dientes solo","Requiere recordatorio para lavarse","Se resiste a lavarse",
+        "Se viste solo","Requiere ayuda para vestirse","Higiene personal adecuada"
+      ])+
+      fld("Responsabilidad que cumple en casa",inp("responsabilidadCasa",p.responsabilidadCasa,"text","ej: ordenar su cuarto, poner la mesa..."))+
+      fld("Actividades extracurriculares",ta("actividadesExtracurriculares",p.actividadesExtracurriculares,2,"ej: fútbol, inglés, piano, natación..."))
+    );
+  }
+
+  else if(activeTab==="familiar"){
+    el.innerHTML=
+      sec(14,"Dinámica Familiar",
+        g2(
+          fld("Relación con los padres",sel("relacionPadres",p.relacionPadres,["Cercana","Regular","Distante","Conflictiva","Dependiente"]))+
+          fld("Respuesta a los límites",sel("respuestaLimites",p.respuestaLimites,["Los respeta","Los cuestiona","Se opone frecuentemente"]))+
+          fld("Reacción ante la frustración",sel("reaccionFrustracion",p.reaccionFrustracion,["Se retira","Llora","Se enoja","Busca ayuda","Agresividad"]))
+        )+
+        mchk("Vínculos positivos cercanos","vinculosPositivos",p.vinculosPositivos,[
+          "Madre","Padre","Hermanos","Primos","Abuelos","Tíos","Cuidadores","Amigos","Ninguno"
+        ])+
+        fld("Nombre(s) de personas con quien más se vincula",inp("nombresVinculos",p.nombresVinculos,"text","ej: abuela María, amigo Pedro..."))
+      )+
+      sec(15,"Conductas en Casa",
+        mchk("Conductas disruptivas o desafiantes observadas en casa","conductasEnCasa",p.conductasEnCasa,[
+          "Desobediente frecuentemente","Rabietas intensas","Agresividad verbal","Agresividad física",
+          "Daña objetos","Sin conductas disruptivas"
+        ])+
+        mchk("¿En qué contexto se presentan más?","contextoConductas",p.contextoConductas,[
+          "Al hacer tareas","En público","Con amigos","Con hermanos","Cuando percibe vergüenza",
+          "Ante cambios de rutina","Al ponerle límites","Sin un contexto claro"
+        ])
+      );
+  }
+
+  else if(activeTab==="antecedentes"){
+    const archH=(p.informesPrevios||[]).map((a,i)=>`
+      <div class="uploaded-file">
+        <span>📄</span>
+        <a href="${a.url}" target="_blank" style="color:var(--adk);font-weight:700">${esc(a.nombre)}</a>
+        <button class="btn-del" style="margin-left:auto" onclick="delArchivo(${i})">✕</button>
+      </div>`).join("");
+    el.innerHTML=
+      sec(16,"Antecedentes Terapéuticos y de Salud",
+        fld("Diagnóstico previo (si existe)",ta("diagnosticoPrevio",p.diagnosticoPrevio,2,"Escribir diagnóstico previo si lo tiene..."))+
+        g2(
+          fld("¿Toma medicación actualmente?",sel("medicacionActual",p.medicacionActual,["No","Sí"]))+
+          (p.medicacionActual==="Sí"?fld("¿Qué especialista la indica?",inp("especialistaMedicacion",p.especialistaMedicacion,"text","ej: Neuropediatra, Psiquiatra...")):"")
+        )+
+        mchk("Terapias o consultas previas o actuales","terapiasHistorial",p.terapiasHistorial,[
+          "Psicología","Psicopedagogía","Terapia del lenguaje","Terapia ocupacional",
+          "Neurología","Neuropediatría","Psiquiatría","Otra especialidad"
+        ])+
+        fld("¿Qué diagnóstico dio ese especialista?",ta("diagnosticoEspecialista",p.diagnosticoEspecialista,2,"Describir diagnóstico del especialista..."))+
+        fld("Intervenciones previas",`<div class="mchk">${["Ninguna","Psicopedagogía","Terapia psicológica","Terapia del lenguaje","Apoyo escolar","Medicación"].map(o=>`<button class="cbtn${(p.intervencionesPrevias||[]).includes(o)?" on":""}" onclick="toggleArr('intervencionesPrevias','${o}')">${o}</button>`).join("")}</div>`)
+      )+
+      sec(17,"Informes Previos",
+        `<div style="margin-bottom:10px;font-size:12px;color:var(--mid)">Puedes subir fotos o PDFs de informes anteriores.</div>
+        ${archH}
+        <div class="upload-area" onclick="document.getElementById('file-input').click()">
+          📎 Toca aquí para subir un archivo (foto o PDF)
+          <div style="font-size:11px;color:var(--light);margin-top:4px">JPG, PNG o PDF</div>
+        </div>
+        <input id="file-input" type="file" accept="image/*,.pdf" style="display:none" onchange="subirArchivo(this)">`
+      );
+  }
+
+  else if(activeTab==="clinico"){
+    el.innerHTML=
+      sec(18,"Actitud y Disposición",
+        fld("Actitud durante la entrevista",sel("observacionActitud",p.observacionActitud,[
+          "Cooperador — buena disposición","Reservado — escasa participación espontánea",
+          "Evasivo — evita contacto visual o ciertas preguntas","Dependiente — busca constantemente la presencia del adulto","Ansioso","Oposicionista"
+        ]))+
+        fld("Tipo de interacción",sel("observacionInteraccion",p.observacionInteraccion,[
+          "Apropiada — responde y se vincula adecuadamente","Evitativa — evita el contacto y la comunicación directa",
+          "Ambivalente — se muestra cambiante o contradictorio","Desorganizada"
+        ]))+
+        fld("Lenguaje",sel("observacionLenguaje",p.observacionLenguaje,[
+          "Claro — se comunica con fluidez y coherencia","Limitado — dificultad en la expresión verbal",
+          "Ecolálico — repite palabras o frases sin intención comunicativa","Fluido y adecuado para su edad","No verbal"
+        ]))
+      )+
+      sec(19,"Juego y Estado Emocional",
+        fld("Tipo de juego observado",sel("observacionJuego",p.observacionJuego,[
+          "Funcional — utiliza objetos con propósito claro","Simbólico — representa roles o situaciones",
+          "Sensorial — enfocado en texturas, sonidos o estímulos","Repetitivo — misma acción de forma constante","No aplicable"
+        ]))+
+        fld("Estado emocional durante la consulta",sel("observacionEstadoEmocional",p.observacionEstadoEmocional,[
+          "Estable — sin alteraciones visibles","Ansioso — muestra nerviosismo e inquietud",
+          "Irritable — se frustra con facilidad","Inseguro — necesita reafirmación constante","Neutro — sin expresión emocional evidente"
+        ]))
+      )+
+      sec(20,"Insight y Disposición Terapéutica",
+        fld("Nivel de insight",sel("observacionInsight",p.observacionInsight,[
+          "Sin insight — no reconoce dificultades ni emociones","Insight parcial — identifica algunas dificultades",
+          "Insight adecuado — comprende sus procesos"
+        ]))+
+        fld("Disposición al proceso terapéutico",sel("observacionDisposicion",p.observacionDisposicion,[
+          "Alta disposición","Disposición parcial","Baja disposición","No expresó disposición"
+        ]))+
+        fld("Notas adicionales de observación clínica",ta("observacionNotas",p.observacionNotas,4,"Observaciones adicionales que no encajan en las categorías anteriores..."))
+      );
+  }
+
+  else if(activeTab==="hipotesis"){
+    el.innerHTML=
+      sec(21,"Hipótesis Clínica Inicial",
+        fld("Hipótesis preliminares, áreas a explorar, diagnósticos diferenciales",ta("hipotesisClinica",p.hipotesisClinica,5,"Plantear hipótesis clínicas iniciales..."))
+      )+
+      sec(22,"Plan de Evaluación",
+        mchk("Procedimientos y pruebas a aplicar","planEvaluacion",p.planEvaluacion,[
+          "Conners — padres","Conners — maestros","MOIDI","Entrevista familiar",
+          "Observación clínica","Bender","Raven color (hasta 11 años)","Raven general (12+ años)",
+          "WISC-V","Neuropsi","Escala de ansiedad","Prueba de autismo (M-CHAT / ADOS)","Otras pruebas"
+        ])+
+        (p.planEvaluacion&&p.planEvaluacion.includes("Otras pruebas")?
+          fld("Especificar otras pruebas",ta("otrasPruebas",p.otrasPruebas,2,"Escribir otras pruebas a aplicar...")):"")
+      );
+  }
+
+  else if(activeTab==="evaluaciones"){
+    const evH=(p.evaluaciones||[]).map((ev,i)=>`
+      <div class="icard">
+        <div style="padding:13px 14px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:9px">
+            <strong style="font-size:12px;color:var(--adk)">Evaluación #${i+1}</strong>
+            <button class="btn-del" onclick="delEval(${i})">Eliminar</button>
+          </div>
+          <div class="g2">
+            <div class="fld"><label>Nombre del test</label><input value="${esc(ev.nombre)}" oninput="updEval(${i},'nombre',this.value)"></div>
+            <div class="fld"><label>Fecha de aplicación</label><input type="date" value="${esc(ev.fecha)}" oninput="updEval(${i},'fecha',this.value)"></div>
+            <div class="fld"><label>Tipo de evaluación</label><select onchange="updEval(${i},'tipo',this.value)"><option value="">Seleccionar...</option>${["Psicométrica","Proyectiva","Neuropsicológica","Conductual","Otra"].map(o=>`<option${ev.tipo===o?" selected":""}>${o}</option>`).join("")}</select></div>
+            <div class="fld"><label>Informante</label><select onchange="updEval(${i},'informante',this.value)"><option value="">Seleccionar...</option>${["Padre","Madre","Maestro","Paciente","Psicólogo"].map(o=>`<option${ev.informante===o?" selected":""}>${o}</option>`).join("")}</select></div>
+            <div class="fld"><label>Puntaje obtenido</label><input value="${esc(ev.puntaje)}" oninput="updEval(${i},'puntaje',this.value)"></div>
+            <div class="fld"><label>Percentil</label><input value="${esc(ev.percentil)}" oninput="updEval(${i},'percentil',this.value)"></div>
+          </div>
+          <div class="fld"><label>Observaciones psicométricas</label><textarea rows="2" oninput="updEval(${i},'observaciones',this.value)">${esc(ev.observaciones)}</textarea></div>
+          <div class="fld"><label>Observaciones proyectivas / emocionales / neurológicas</label><textarea rows="2" oninput="updEval(${i},'obsProyectivas',this.value)">${esc(ev.obsProyectivas)}</textarea></div>
+        </div>
+      </div>`).join("");
+    el.innerHTML=sec(23,"Evaluaciones Aplicadas",
+      `<div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn-add" onclick="addEval()">+ Nueva evaluación</button></div>
+      ${evH||'<div style="text-align:center;padding:28px 0;color:var(--light);font-size:12px">No hay evaluaciones registradas aún.</div>'}`
+    );
+  }
+
+  else if(activeTab==="sesiones"){
+    const sesH=[...(p.sesiones||[])].reverse().map((s,ri)=>{
+      const i=(p.sesiones.length-1)-ri;
+      return`<div class="icard">
+        <div class="ihdr" onclick="toggleItem(this)">
+          <div style="display:flex;align-items:center;gap:9px">
+            <div class="inum">${p.sesiones.length-ri}</div>
             <div>
-              <div style="font-weight:700;font-size:13px;color:var(--brown)">${fmtDate(s.fecha)}</div>
-              ${s.objetivo?`<div style="font-size:11px;color:var(--textMid)">${escHtml(s.objetivo.slice(0,55))}${s.objetivo.length>55?"...":""}</div>`:""}
+              <div style="font-weight:700;font-size:12px;color:var(--brown)">${esc(s.titulo)||"Sin título"}</div>
+              <div style="font-size:10px;color:var(--mid)">${fmtDate(s.fecha)}</div>
             </div>
           </div>
           <span style="color:var(--accent)">▼</span>
         </div>
-        <div class="item-body" style="display:none">
-          <div class="field"><label>Fecha</label><input type="date" value="${s.fecha||""}" onchange="updSes(${i},'fecha',this.value)"></div>
-          <div class="field"><label>Objetivo de sesión</label><textarea rows="2" onchange="updSes(${i},'objetivo',this.value)">${escHtml(s.objetivo||"")}</textarea></div>
-          <div class="field"><label>Observaciones clínicas</label><textarea rows="3" onchange="updSes(${i},'observaciones',this.value)">${escHtml(s.observaciones||"")}</textarea></div>
-          <div class="field"><label>Intervención aplicada</label><textarea rows="2" onchange="updSes(${i},'intervencion',this.value)">${escHtml(s.intervencion||"")}</textarea></div>
-          <div class="field"><label>Tareas o recomendaciones</label><textarea rows="2" onchange="updSes(${i},'tareas',this.value)">${escHtml(s.tareas||"")}</textarea></div>
+        <div class="ibody">
+          <div class="g2">
+            <div class="fld"><label>Nombre / título de la sesión</label><input value="${esc(s.titulo)}" oninput="updSes(${i},'titulo',this.value)"></div>
+            <div class="fld"><label>Fecha</label><input type="date" value="${esc(s.fecha)}" oninput="updSes(${i},'fecha',this.value)"></div>
+          </div>
+          <div class="fld"><label>Objetivo de sesión</label><textarea rows="2" oninput="updSes(${i},'objetivo',this.value)">${esc(s.objetivo)}</textarea></div>
+          <div class="fld"><label>Observaciones clínicas</label><textarea rows="3" oninput="updSes(${i},'observaciones',this.value)">${esc(s.observaciones)}</textarea></div>
+          <div class="fld"><label>Intervención aplicada</label><textarea rows="2" oninput="updSes(${i},'intervencion',this.value)">${esc(s.intervencion)}</textarea></div>
+          <div class="fld"><label>Tareas o recomendaciones</label><textarea rows="2" oninput="updSes(${i},'tareas',this.value)">${esc(s.tareas)}</textarea></div>
           <button class="btn-del" onclick="delSes(${i})">Eliminar sesión</button>
         </div>
       </div>`;
     }).join("");
-    el.innerHTML = section(16,"Registro de Sesiones",
-      `<div style="display:flex;justify-content:flex-end;margin-bottom:14px"><button class="btn-add" onclick="addSes()">+ Nueva sesión</button></div>
-      ${sesHtml || '<div style="text-align:center;padding:32px 0;color:var(--textLight);font-size:13px">No hay sesiones registradas aún.</div>'}`
+    el.innerHTML=sec(24,"Registro de Sesiones",
+      `<div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn-add" onclick="addSes()">+ Nueva sesión</button></div>
+      ${sesH||'<div style="text-align:center;padding:28px 0;color:var(--light);font-size:12px">No hay sesiones registradas aún.</div>'}`
     );
   }
 
-  else if (activeTab==="diagnostico") {
-    el.innerHTML =
-      section(17,"Diagnóstico", multiChk("Diagnósticos clínicos","diagnostico",p.diagnostico,["TDAH","Trastorno de ansiedad","Trastorno depresivo","Trastorno oposicionista desafiante","TEA","Dificultades de aprendizaje","Otro"]))+
-      section(18,"Impresión Diagnóstica", taLabel("Observaciones clínicas finales e impresión diagnóstica","impresionDiagnostica",p.impresionDiagnostica,7,"Registrar impresión diagnóstica detallada..."));
+  else if(activeTab==="diagnostico"){
+    const DSM_LIST=[
+      "TDAH — Presentación combinada","TDAH — Predominio inatento","TDAH — Predominio hiperactivo/impulsivo",
+      "Trastorno de ansiedad generalizada","Trastorno de ansiedad por separación","Fobia específica","Mutismo selectivo",
+      "Trastorno depresivo mayor","Trastorno disruptivo del estado de ánimo",
+      "Trastorno oposicionista desafiante (TOD)","Trastorno de conducta",
+      "Trastorno del espectro autista (TEA) — Nivel 1","Trastorno del espectro autista (TEA) — Nivel 2","Trastorno del espectro autista (TEA) — Nivel 3",
+      "Trastorno específico del aprendizaje — Lectura","Trastorno específico del aprendizaje — Expresión escrita","Trastorno específico del aprendizaje — Matemáticas",
+      "Trastorno del lenguaje","Trastorno fonológico","Trastorno de la comunicación social",
+      "Trastorno de movimientos estereotipados","Trastorno de tics",
+      "Trastorno de estrés postraumático (TEPT)","Trastorno de adaptación",
+      "Discapacidad intelectual leve","Discapacidad intelectual moderada",
+      "Dificultades contextuales (no clínico)","En proceso de evaluación — sin diagnóstico definitivo"
+    ];
+    el.innerHTML=sec(25,"Diagnóstico DSM-5",
+      `<div style="margin-bottom:10px;font-size:11px;color:var(--mid)">Toca el nombre del diagnóstico para ver los criterios DSM-5 antes de seleccionar. Selecciona los que aplican.</div>
+      <div class="mchk">${DSM_LIST.map(d=>`
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:5px">
+          <button class="cbtn${(p.diagnostico||[]).includes(d)?" on":""}" onclick="toggleArr('diagnostico','${esc(d)}')">${d}</button>
+          <button onclick="showDSM('${esc(d)}')" style="padding:2px 7px;background:var(--ypl);border:1px solid var(--yellow);border-radius:5px;font-size:10px;color:var(--mid)" title="Ver criterios DSM-5">ℹ️</button>
+        </div>`).join("")}
+      </div>`+
+      fld("Impresión diagnóstica",ta("impresionDiagnostica",p.impresionDiagnostica,6,"Registrar impresión diagnóstica detallada..."))
+    );
   }
 
-  else if (activeTab==="informe") {
-    const inf = generarInforme(p);
-    el.innerHTML = section(18,"Borrador de Informe Clínico",
-      `<div style="display:flex;justify-content:flex-end;margin-bottom:10px">
-        <button class="btn-green" onclick="copiarInforme()" id="btn-copy">📋 Copiar informe</button>
+  else if(activeTab==="informe"){
+    const inf=genInforme(p);
+    el.innerHTML=sec(26,"Borrador de Informe Clínico",
+      `<div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:12px">
+        <button class="btn-green" onclick="copiarInforme()" id="btn-copy">📋 Copiar texto</button>
+        <button class="btn-word" onclick="exportarWord()">📝 Exportar a Word</button>
+        <button onclick="updateFechaInforme()" style="padding:8px 16px;background:var(--ypl);border:1px solid var(--yellow);border-radius:8px;font-size:12px;font-weight:700;color:var(--mid)">📅 Actualizar fecha a hoy</button>
       </div>
-      <pre id="informe-text">${escHtml(inf)}</pre>
-      <p style="font-size:11px;color:var(--textLight);margin-top:10px;font-style:italic">* Borrador generado automáticamente. Revise y complete antes de emitirlo.</p>`
+      <pre id="informe-text">${esc(inf)}</pre>
+      <p style="font-size:10px;color:var(--light);margin-top:9px;font-style:italic">* Borrador generado automáticamente. Revise y complete antes de emitirlo.</p>`
     );
   }
 }
 
 // ── Informe ───────────────────────────────────────────────────────────────────
-function generarInforme(p) {
-  return `INFORME PSICOLÓGICO
+let informeFecha=nowDate();
+function updateFechaInforme(){
+  informeFecha=nowDate();
+  renderTab();
+}
+function genInforme(p){
+  return`INFORME PSICOLÓGICO
 ═══════════════════════════════════════════════
-Psicóloga Carol — Psicóloga Familiar
+Psic. Carol Castillo
+C.I.: 21.578.572  |  FPV: 11064
 
 Historia Clínica: ${p.hcCode}
-Fecha de emisión: ${fmtDate(today())}
+Fecha de emisión: ${informeFecha}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 I. DATOS DEL PACIENTE
@@ -636,7 +834,7 @@ Fecha de nacimiento: ${fmtDate(p.fechaNac)}
 Sexo: ${p.sexo||"—"}
 Grado escolar: ${p.gradoEscolar||"—"}
 Institución: ${p.institucion||"—"}
-Representante: ${p.repNombre||"—"} (${p.repParentesco||"—"})
+Representante: ${p.repNombre||"—"} (${p.repParentesco||"—"}) — Tel: ${p.repTelefono||"—"}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 II. MOTIVO DE CONSULTA
@@ -644,136 +842,167 @@ II. MOTIVO DE CONSULTA
 ${p.motivoConsulta||"No registrado."}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-III. ANTECEDENTES RELEVANTES
+III. ANTECEDENTES
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Embarazo: ${p.embarazoPlaneado?"Planeado: "+p.embarazoPlaneado+". ":""}${p.saludMadre?"Salud materna: "+p.saludMadre+". ":""}${(p.complicacionesEmbarazo||[]).length?"Complicaciones: "+p.complicacionesEmbarazo.join(", ")+".":""}
-Nacimiento: ${p.tipoNacimiento||"—"}${p.semanasEmbarazo?" ("+p.semanasEmbarazo+" semanas)":""}. Parto: ${p.tipoParto||"—"}.
-Desarrollo: Caminó a los ${p.edadCamino||"—"} meses. Primeras palabras: ${p.primerasPalabras||"—"}.
+Embarazo: ${p.embarazoPlaneado?"Planeado: "+p.embarazoPlaneado+".":""}  Salud materna: ${p.saludMadre||"—"}.
+${(p.complicacionesEmbarazo||[]).length?"Complicaciones: "+p.complicacionesEmbarazo.join(", ")+".":""}
+${p.otrasCompEmbarazo?"Otras complicaciones: "+p.otrasCompEmbarazo:""}
+Nacimiento: ${p.tipoNacimiento||"—"} ${p.semanasEmbarazo?"("+p.semanasEmbarazo+" semanas)":""}.  Parto: ${p.tipoParto||"—"}.
+Peso: ${p.pesoNacer||"—"}  |  Talla: ${p.tallaNacer||"—"}
+${(p.complicacionesNacimiento||[]).length?"Complicaciones al nacer: "+p.complicacionesNacimiento.join(", ")+".":""}
+${(p.primeraSemanaNac||[]).length?"Primera semana: "+p.primeraSemanaNac.join(", ")+".":""}
+
+Hitos: Caminó a los ${p.edadCamino||"—"} meses.  Primeras palabras: ${p.primerasPalabras||"—"}.
+Control de esfínteres diurno: ${p.controlEsfinteresDiurno||"—"} meses  |  Nocturno: ${p.controlEsfinteresNocturno||"—"} meses.
+
+Antecedentes de salud/terapéuticos:
+Diagnóstico previo: ${p.diagnosticoPrevio||"Ninguno"}
+Medicación actual: ${p.medicacionActual||"No"}${p.medicacionActual==="Sí"&&p.especialistaMedicacion?" — indicada por: "+p.especialistaMedicacion:""}
+Terapias/consultas previas: ${(p.terapiasHistorial||[]).length?p.terapiasHistorial.join(", "):"Ninguna"}
+${p.diagnosticoEspecialista?"Diagnóstico del especialista: "+p.diagnosticoEspecialista:""}
 Intervenciones previas: ${(p.intervencionesPrevias||[]).length?p.intervencionesPrevias.join(", "):"Ninguna"}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 IV. EVALUACIONES APLICADAS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-${(p.evaluaciones||[]).length===0?"No se registraron evaluaciones.":(p.evaluaciones||[]).map((e,i)=>`${i+1}. ${e.nombre||"Sin nombre"} (${fmtDate(e.fecha)})\n   Informante: ${e.informante||"—"} | Puntaje: ${e.puntaje||"—"} | Percentil: ${e.percentil||"—"}`).join("\n\n")}
+${(p.evaluaciones||[]).length===0?"No se registraron evaluaciones.":(p.evaluaciones||[]).map((e,i)=>`${i+1}. ${e.nombre||"Sin nombre"} [${e.tipo||"—"}] — ${fmtDate(e.fecha)}\n   Informante: ${e.informante||"—"} | Puntaje: ${e.puntaje||"—"} | Percentil: ${e.percentil||"—"}\n   ${e.observaciones?"Psicométrico: "+e.observaciones:""}\n   ${e.obsProyectivas?"Proyectivo/Emocional: "+e.obsProyectivas:""}`).join("\n\n")}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 V. OBSERVACIÓN CLÍNICA
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-${p.observacionClinica||"No registrada."}
+Actitud: ${p.observacionActitud||"—"}
+Interacción: ${p.observacionInteraccion||"—"}
+Lenguaje: ${p.observacionLenguaje||"—"}
+Juego: ${p.observacionJuego||"—"}
+Estado emocional: ${p.observacionEstadoEmocional||"—"}
+Insight: ${p.observacionInsight||"—"}
+Disposición terapéutica: ${p.observacionDisposicion||"—"}
+${p.observacionNotas?"\nNotas adicionales:\n"+p.observacionNotas:""}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-VI. IMPRESIÓN DIAGNÓSTICA
+VI. HIPÓTESIS CLÍNICA
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Diagnósticos: ${(p.diagnostico||[]).length?p.diagnostico.join(", "):"—"}
-${p.impresionDiagnostica||"No registrada."}
+${p.hipotesisClinica||"No registrada."}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-VII. RECOMENDACIONES
+VII. DIAGNÓSTICO
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[Completar por la psicóloga]
+${(p.diagnostico||[]).length?p.diagnostico.join("\n• "):"—"}
+
+${p.impresionDiagnostica||""}
 
 ═══════════════════════════════════════════════
-Psicóloga Carol — Psicóloga Familiar
+Psic. Carol Castillo
+C.I.: 21.578.572  |  FPV: 11064
 Firma: _______________________________________
-Fecha: ${fmtDate(today())}
+Fecha: ${informeFecha}
 ═══════════════════════════════════════════════`;
 }
-
-function copiarInforme() {
-  const txt = document.getElementById("informe-text").textContent;
+function copiarInforme(){
+  const txt=document.getElementById("informe-text").textContent;
   navigator.clipboard.writeText(txt).then(()=>{
-    const btn = document.getElementById("btn-copy");
-    btn.textContent = "✓ Copiado";
-    setTimeout(()=>{ btn.textContent = "📋 Copiar informe"; }, 2000);
+    const b=document.getElementById("btn-copy");
+    b.textContent="✓ Copiado";setTimeout(()=>{b.textContent="📋 Copiar texto";},2000);
   });
 }
+function exportarWord(){
+  const p=getP();if(!p)return;
+  const txt=genInforme(p);
+  const html=`<html><head><meta charset="UTF-8"><style>body{font-family:Calibri,sans-serif;font-size:11pt;margin:2.5cm;}pre{font-family:Calibri,sans-serif;white-space:pre-wrap;}</style></head><body><pre>${txt}</pre></body></html>`;
+  const blob=new Blob([html],{type:"application/msword"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=`Informe_${p.nombre||p.hcCode}_${today()}.doc`;
+  a.click();
+}
+
+// ── DSM-5 info ────────────────────────────────────────────────────────────────
+const DSM_DATA={
+  "TDAH — Presentación combinada":{code:"F90.2",desc:"Cumple criterios tanto de inatención como de hiperactividad/impulsividad. Patrón persistente de inatención y/o hiperactividad-impulsividad que interfiere con el funcionamiento o desarrollo. Síntomas presentes antes de los 12 años, en dos o más contextos. 6 o más síntomas de inatención Y 6 o más de hiperactividad/impulsividad (5 en adolescentes/adultos) durante al menos 6 meses."},
+  "TDAH — Predominio inatento":{code:"F90.0",desc:"6 o más síntomas de inatención durante al menos 6 meses: no presta atención a detalles, dificultad para mantener la atención, no parece escuchar, no sigue instrucciones, dificultad para organizar tareas, evita tareas que requieren esfuerzo mental sostenido, pierde cosas, se distrae fácilmente, es olvidadizo."},
+  "TDAH — Predominio hiperactivo/impulsivo":{code:"F90.1",desc:"6 o más síntomas de hiperactividad/impulsividad durante al menos 6 meses: mueve manos y pies, se levanta cuando debe permanecer sentado, corre o salta en momentos inapropiados, incapaz de jugar tranquilo, habla en exceso, responde antes de que terminen la pregunta, dificultad para esperar su turno, interrumpe o se inmiscuye."},
+  "Trastorno de ansiedad generalizada":{code:"F41.1",desc:"Ansiedad y preocupación excesivas sobre una amplia gama de actividades o sucesos, más días de los que está ausente, durante 6 o más meses. La persona tiene dificultad para controlar la preocupación. Se asocia con 3 o más de: inquietud, fácil fatigabilidad, dificultad para concentrarse, irritabilidad, tensión muscular, problemas de sueño."},
+  "Trastorno de ansiedad por separación":{code:"F93.0",desc:"Miedo o ansiedad excesiva e inapropiada para el nivel de desarrollo del individuo sobre la separación de las personas a quienes está vinculado, manifestado por 3 o más de: angustia al anticipar separación, preocupación por perder a las figuras de apego, miedo a estar solo, pesadillas con separación, síntomas físicos al separarse."},
+  "Fobia específica":{code:"F40.2",desc:"Miedo o ansiedad intensa sobre un objeto o situación específica. El objeto fóbico casi siempre provoca miedo o ansiedad inmediata. La persona evita activamente el objeto. El miedo es desproporcionado al peligro real. Persistente, generalmente 6 o más meses."},
+  "Mutismo selectivo":{code:"F94.0",desc:"Fallo constante para hablar en situaciones sociales específicas en las que existe expectativa de hablar, a pesar de hacerlo en otras situaciones. Interfiere en logros educativos o en la comunicación social. Duración de al menos 1 mes (no se limita al primer mes de escuela)."},
+  "Trastorno depresivo mayor":{code:"F32",desc:"5 o más de los siguientes síntomas durante 2 semanas: estado de ánimo deprimido, pérdida de interés o placer, cambio de peso/apetito, insomnio o hipersomnia, agitación o enlentecimiento psicomotor, fatiga, sentimientos de inutilidad o culpa, dificultad para concentrarse, pensamientos de muerte. Debe incluir estado de ánimo deprimido o pérdida de interés."},
+  "Trastorno disruptivo del estado de ánimo":{code:"F34.8",desc:"Irritabilidad grave y persistente, con arrebatos de temperamento graves y recurrentes (3 o más veces por semana), desproporcionados a la situación, en al menos 2 contextos. Estado de ánimo irritable o irascible persistente entre los arrebatos. Diagnóstico no antes de los 6 años ni después de los 18."},
+  "Trastorno oposicionista desafiante (TOD)":{code:"F91.3",desc:"Patrón de humor enfadado/irritable, comportamiento discutidor/desafiante o actitud vengativa que dura al menos 6 meses. Incluye: pierde la calma, es susceptible, está enfadado/resentido, discute con adultos, desafía activamente las reglas, culpa a los demás de sus errores, es rencoroso o vengativo."},
+  "Trastorno de conducta":{code:"F91.1",desc:"Patrón repetitivo y persistente de comportamiento en el que se violan los derechos básicos de otros o normas sociales propias de la edad. Incluye: agresión a personas/animales, destrucción de la propiedad, engaño o robo, incumplimiento grave de normas. 3 o más criterios en los últimos 12 meses."},
+  "Trastorno del espectro autista (TEA) — Nivel 1":{code:"F84.0",desc:"Nivel 1 (requiere apoyo): Déficits en la comunicación social e interacción social en múltiples contextos + patrones restrictivos y repetitivos de comportamiento. Sin apoyo in situ, los déficits causan deterioro notable. Dificultades para iniciar interacciones sociales; respuestas atípicas a aperturas sociales de otros."},
+  "Trastorno del espectro autista (TEA) — Nivel 2":{code:"F84.0",desc:"Nivel 2 (requiere apoyo sustancial): Déficits marcados en comunicación social verbal y no verbal; déficits sociales manifiestos incluso con apoyos. Inflexibilidad de comportamiento, dificultad para adaptarse al cambio. Comportamientos restringidos/repetitivos frecuentes."},
+  "Trastorno del espectro autista (TEA) — Nivel 3":{code:"F84.0",desc:"Nivel 3 (requiere apoyo muy sustancial): Déficits graves en habilidades de comunicación social verbal y no verbal causan deterioro grave del funcionamiento. Inflexibilidad de comportamiento, extrema dificultad para adaptarse. Gran angustia/dificultad para cambiar el foco de atención."},
+  "Trastorno específico del aprendizaje — Lectura":{code:"F81.0",desc:"Dificultades en el aprendizaje y uso de habilidades académicas: lectura de palabras imprecisa o lenta, dificultad para comprender el significado de lo que se lee. Las habilidades de lectura están muy por debajo de lo esperado para la edad cronológica. Persiste al menos 6 meses."},
+  "Trastorno específico del aprendizaje — Expresión escrita":{code:"F81.8",desc:"Dificultades con la expresión escrita: ortografía deficiente, gramática y puntuación deficientes, claridad u organización escasa de la expresión escrita. Las habilidades están muy por debajo de lo esperado para la edad."},
+  "Trastorno específico del aprendizaje — Matemáticas":{code:"F81.2",desc:"Dificultades en el sentido de los números, memorización de operaciones aritméticas, cálculo correcto o fluido, razonamiento matemático correcto. Las habilidades matemáticas están muy por debajo de lo esperado para la edad."},
+  "Trastorno del lenguaje":{code:"F80.2",desc:"Dificultades persistentes en la adquisición y uso del lenguaje en todas sus modalidades (hablado, escrito, lengua de signos). Las capacidades de lenguaje están sustancialmente por debajo de lo esperado para la edad. Inicio en el período de desarrollo temprano."},
+  "Trastorno fonológico":{code:"F80.0",desc:"Dificultad persistente en la producción fonológica que interfiere con la inteligibilidad del habla o impide la comunicación verbal de mensajes. Inicio en el período de desarrollo temprano."},
+  "Trastorno de estrés postraumático (TEPT)":{code:"F43.1",desc:"Exposición a un suceso traumático seguida de: síntomas intrusivos (recuerdos, sueños, flashbacks), evitación de estímulos relacionados, alteraciones cognitivas y del estado de ánimo negativas, alteraciones en la reactividad (hipervigilancia, respuesta de sobresalto exagerada). Duración superior a 1 mes."},
+  "Trastorno de adaptación":{code:"F43.2",desc:"Síntomas emocionales o comportamentales en respuesta a un factor estresante identificable, desarrollados en los 3 meses siguientes al inicio del factor. Malestar excesivo desproporcionado a la gravedad del factor estresante. Los síntomas no duran más de 6 meses una vez que el factor ha desaparecido."},
+  "Dificultades contextuales (no clínico)":{code:"Z-codes",desc:"Situaciones que influyen en el estado de salud pero no son enfermedades ni trastornos en sí. Incluye: problemas en relaciones familiares, dificultades de crianza, eventos vitales estresantes, problemas académicos, problemas de adaptación al entorno escolar. No se incluye en el informe como diagnóstico clínico."},
+  "En proceso de evaluación — sin diagnóstico definitivo":{code:"—",desc:"El proceso de evaluación está en curso. No se cuenta con información suficiente para establecer un diagnóstico definitivo en este momento. Se continuará con el plan de evaluación propuesto."}
+};
+
+function showDSM(diag){
+  const d=DSM_DATA[diag];
+  if(!d){alert("Información DSM-5 no disponible para este diagnóstico aún.");return;}
+  document.getElementById("dsm-code").textContent=d.code;
+  document.getElementById("dsm-title").textContent=diag;
+  document.getElementById("dsm-body").textContent=d.desc;
+  document.getElementById("dsm-modal").classList.add("open");
+}
+function closeDSM(){document.getElementById("dsm-modal").classList.remove("open");}
 
 // ── Convivientes ──────────────────────────────────────────────────────────────
-function addConv() {
-  const p = getSelected();
-  p.convivientes = [...(p.convivientes||[]), {id:uid(),nombre:"",edad:"",ocupacion:"",parentesco:""}];
-  savePatient({...p}); renderTab();
-}
-function updConv(i,f,v) {
-  const p = getSelected();
-  p.convivientes[i][f]=v;
-  savePatient({...p});
-}
-function delConv(i) {
-  const p = getSelected();
-  p.convivientes = p.convivientes.filter((_,x)=>x!==i);
-  savePatient({...p}); renderTab();
-}
+function addConv(){const p=getP();p.convivientes=[...(p.convivientes||[]),{id:uid(),nombre:"",edad:"",ocupacion:"",parentesco:"",convive:"",obs:""}];saveP({...p});renderTab();}
+function updConv(i,f,v){const p=getP();p.convivientes[i][f]=v;saveP({...p});}
+function delConv(i){const p=getP();p.convivientes=p.convivientes.filter((_,x)=>x!==i);saveP({...p});renderTab();}
 
 // ── Evaluaciones ──────────────────────────────────────────────────────────────
-function addEval() {
-  const p = getSelected();
-  p.evaluaciones = [...(p.evaluaciones||[]), {id:uid(),nombre:"",fecha:today(),informante:"",puntaje:"",percentil:"",observaciones:""}];
-  savePatient({...p}); renderTab();
-}
-function updEval(i,f,v) {
-  const p = getSelected();
-  p.evaluaciones[i][f]=v;
-  savePatient({...p});
-}
-function delEval(i) {
-  const p = getSelected();
-  p.evaluaciones = p.evaluaciones.filter((_,x)=>x!==i);
-  savePatient({...p}); renderTab();
-}
+function addEval(){const p=getP();p.evaluaciones=[...(p.evaluaciones||[]),{id:uid(),nombre:"",fecha:today(),tipo:"",informante:"",puntaje:"",percentil:"",observaciones:"",obsProyectivas:""}];saveP({...p});renderTab();}
+function updEval(i,f,v){const p=getP();p.evaluaciones[i][f]=v;saveP({...p});}
+function delEval(i){const p=getP();p.evaluaciones=p.evaluaciones.filter((_,x)=>x!==i);saveP({...p});renderTab();}
 
 // ── Sesiones ──────────────────────────────────────────────────────────────────
-function addSes() {
-  const p = getSelected();
-  p.sesiones = [...(p.sesiones||[]), {id:uid(),fecha:today(),objetivo:"",observaciones:"",intervencion:"",tareas:""}];
-  savePatient({...p}); renderTab();
-}
-function updSes(i,f,v) {
-  const p = getSelected();
-  p.sesiones[i][f]=v;
-  savePatient({...p});
-}
-function delSes(i) {
-  const p = getSelected();
-  p.sesiones = p.sesiones.filter((_,x)=>x!==i);
-  savePatient({...p}); renderTab();
-}
+function addSes(){const p=getP();p.sesiones=[...(p.sesiones||[]),{id:uid(),titulo:"",fecha:today(),objetivo:"",observaciones:"",intervencion:"",tareas:""}];saveP({...p});renderTab();}
+function updSes(i,f,v){const p=getP();p.sesiones[i][f]=v;saveP({...p});}
+function delSes(i){const p=getP();p.sesiones=p.sesiones.filter((_,x)=>x!==i);saveP({...p});renderTab();}
 
-// ── Sidebar móvil ─────────────────────────────────────────────────────────────
-function openSidebar() {
-  document.getElementById("sidebar").classList.add("open");
-  document.getElementById("overlay").classList.add("open");
-}
-function closeSidebar() {
-  document.getElementById("sidebar").classList.remove("open");
-  document.getElementById("overlay").classList.remove("open");
-}
+// ── Toggle item ───────────────────────────────────────────────────────────────
+function toggleItem(hdr){const b=hdr.nextElementSibling;b.style.display=b.style.display==="block"?"none":"block";}
 
-// ── Inicialización ────────────────────────────────────────────────────────────
-async function init() {
-  // Cargar contador de año
-  try {
-    const metaDoc = await db.collection("meta").doc("yearCounter").get();
-    if (metaDoc.exists) yearCounter = metaDoc.data();
-  } catch(e) {}
+// ── File upload ───────────────────────────────────────────────────────────────
+async function subirArchivo(input){
+  const file=input.files[0];if(!file)return;
+  const p=getP();if(!p)return;
+  try{
+    const ref=storage.ref(`informes/${p.id}/${uid()}_${file.name}`);
+    const snap=await ref.put(file);
+    const url=await snap.ref.getDownloadURL();
+    p.informesPrevios=[...(p.informesPrevios||[]),{nombre:file.name,url}];
+    saveP({...p});renderTab();
+  }catch(e){alert("Error al subir el archivo. Verifica tu conexión.");}
+}
+function delArchivo(i){const p=getP();p.informesPrevios=p.informesPrevios.filter((_,x)=>x!==i);saveP({...p});renderTab();}
 
-  // Escuchar cambios en tiempo real
-  db.collection("pacientes").orderBy("createdAt","desc").onSnapshot(snap => {
-    patients = snap.docs.map(d => ({...d.data(), id: d.id}));
+// ── Sidebar ───────────────────────────────────────────────────────────────────
+function openSB(){document.getElementById("sidebar").classList.add("open");document.getElementById("overlay").classList.add("open");}
+function closeSB(){document.getElementById("sidebar").classList.remove("open");document.getElementById("overlay").classList.remove("open");}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+async function init(){
+  try{const m=await db.collection("meta").doc("yearCounter").get();if(m.exists)yearCounter=m.data();}catch(e){}
+  db.collection("pacientes").orderBy("createdAt","desc").onSnapshot(snap=>{
+    patients=snap.docs.map(d=>({...d.data(),id:d.id}));
     renderList();
-    if (selectedId) {
-      const p = getSelected();
-      if (p) {
-        document.getElementById("hdr-name").textContent = p.nombre || "Paciente sin nombre";
-        renderTab();
-      }
+    if(selectedId){
+      const p=getP();
+      if(p){document.getElementById("hdr-name").textContent=p.nombre||"Paciente sin nombre";}
     }
   });
-
-  document.getElementById("loading").style.display = "none";
-  document.getElementById("app").style.display = "flex";
+  document.getElementById("loading").style.display="none";
+  document.getElementById("app").style.display="flex";
 }
-
 init();
 </script>
 </body>
