@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PsicoHC — Psicóloga Carol</title>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Georgia, 'Times New Roman', serif; background: #FDF9F4; color: #3D1F0D; }
+    :root {
+      --bg: #FDF9F4;
+      --surface: #FFFFFF;
+      --surfaceAlt: #FFF5F0;
+      --border: #F0D9CC;
+      --accent: #5DC9C9;
+      --accentDark: #3AADAD;
+      --accentPale: #E0F7F7;
+      --rose: #E8857A;
+      --rosePale: #FDECEA;
+      --yellow: #F5C842;
+      --yellowPale: #FFFBEA;
+      --brown: #3D1F0D;
+      --textMid: #7A5C4A;
+      --textLight: #B89A8A;
+      --danger: #C0392B;
+    }
+    input, select, textarea, button { font-family: inherit; }
+
+    /* Layout */
+    #app { display: flex; height: 100vh; overflow: hidden; }
+    #sidebar { width: 260px; flex-shrink: 0; background: var(--surface); border-right: 2px solid var(--border); display: flex; flex-direction: column; }
+    #main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+    /* Sidebar */
+    #sidebar-header { padding: 16px 14px 14px; border-bottom: 2px solid var(--border); background: linear-gradient(135deg, rgba(93,201,201,0.08), rgba(245,200,66,0.08)); }
+    #logo-row { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+    #logo-icon { width: 38px; height: 38px; background: linear-gradient(135deg, var(--accent), var(--accentDark)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 2px 8px rgba(93,201,201,0.3); flex-shrink: 0; }
+    #save-status { font-size: 10px; font-weight: 700; text-align: right; margin-bottom: 10px; color: var(--accent); }
+    #btn-new { width: 100%; padding: 9px 0; background: linear-gradient(135deg, var(--accent), var(--accentDark)); color: #fff; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 2px 8px rgba(93,201,201,0.3); }
+    #btn-new:hover { opacity: 0.9; }
+    #search-wrap { padding: 10px 12px 8px; }
+    #search { width: 100%; padding: 7px 10px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 12px; color: var(--brown); background: var(--surfaceAlt); outline: none; }
+    #patient-list { flex: 1; overflow-y: auto; padding: 3px 12px 12px; }
+    #sidebar-footer { padding: 10px 14px; border-top: 1px solid var(--border); background: var(--yellowPale); text-align: center; font-size: 10px; color: var(--textMid); font-weight: 600; }
+
+    /* Patient card */
+    .patient-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px; padding: 12px; cursor: pointer; margin-bottom: 8px; transition: all 0.15s; }
+    .patient-card:hover { border-color: var(--accent); box-shadow: 0 2px 12px rgba(93,201,201,0.15); }
+    .card-hc { font-size: 10px; font-weight: 800; color: var(--accent); letter-spacing: 0.12em; margin-bottom: 3px; }
+    .card-name { font-size: 14px; font-weight: 700; color: var(--brown); }
+    .card-sub { font-size: 12px; color: var(--textMid); margin-top: 2px; }
+    .card-date { font-size: 11px; color: var(--textLight); margin-top: 5px; }
+    .card-tags { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px; }
+    .card-tag { padding: 2px 7px; background: var(--accentPale); color: var(--accentDark); border-radius: 10px; font-size: 10px; font-weight: 700; }
+    .card-del { float: right; padding: 3px 7px; background: var(--rosePale); color: var(--danger); border: none; border-radius: 5px; cursor: pointer; font-size: 11px; }
+
+    /* Main area */
+    #welcome { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 40px; background: radial-gradient(ellipse at center, var(--accentPale) 0%, var(--bg) 70%); }
+    #patient-view { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    #patient-header { padding: 12px 20px; border-bottom: 2px solid var(--border); background: var(--surface); display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+    #btn-back { padding: 5px 12px; background: var(--surfaceAlt); color: var(--textMid); border: 1.5px solid var(--border); border-radius: 7px; font-size: 11px; cursor: pointer; }
+    #tab-nav { display: flex; overflow-x: auto; border-bottom: 2px solid var(--border); background: var(--surface); flex-shrink: 0; scrollbar-width: none; }
+    #tab-nav::-webkit-scrollbar { display: none; }
+    .tab-btn { padding: 9px 12px; border: none; border-bottom: 3px solid transparent; background: transparent; color: var(--textMid); font-size: 11px; font-weight: 500; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 4px; transition: all 0.15s; }
+    .tab-btn.active { border-bottom-color: var(--accent); background: var(--accentPale); color: var(--accentDark); font-weight: 700; }
+    #tab-content { flex: 1; overflow-y: auto; padding: 24px 28px; }
+
+    /* Form elements */
+    .section { margin-bottom: 28px; }
+    .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+    .section-num { width: 28px; height: 28px; border-radius: 7px; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; flex-shrink: 0; }
+    .section-title { font-size: 13px; font-weight: 800; color: var(--brown); text-transform: uppercase; letter-spacing: 0.08em; }
+    .section-body { background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 11px; font-weight: 700; color: var(--textMid); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .field input, .field select, .field textarea { width: 100%; padding: 8px 11px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; color: var(--brown); background: var(--surface); outline: none; }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--accent); }
+    .field textarea { resize: vertical; line-height: 1.6; }
+    .multichk { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
+    .chk-btn { padding: 4px 11px; border-radius: 20px; font-size: 12px; border: 1.5px solid var(--border); background: var(--surface); color: var(--textMid); cursor: pointer; }
+    .chk-btn.on { border-color: var(--accent); background: var(--accentPale); color: var(--accentDark); font-weight: 700; }
+    .scale-row { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+    .scale-btn { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border); background: var(--surface); color: var(--textMid); font-size: 13px; font-weight: 700; cursor: pointer; flex-shrink: 0; }
+    .scale-btn.on { border-color: var(--accent); background: var(--accent); color: #fff; }
+    .scale-label { font-size: 12px; color: var(--accentDark); font-weight: 700; margin-left: 6px; }
+
+    /* Sessions & evaluations */
+    .item-card { background: var(--surfaceAlt); border-radius: 10px; margin-bottom: 10px; border: 1px solid var(--border); overflow: hidden; }
+    .item-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; cursor: pointer; }
+    .item-num { width: 26px; height: 26px; border-radius: 6px; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; flex-shrink: 0; }
+    .item-body { padding: 0 16px 16px; }
+    .btn-add { padding: 7px 16px; background: var(--accent); color: #fff; border: none; border-radius: 7px; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .btn-del { padding: 3px 9px; background: var(--rosePale); color: var(--danger); border: none; border-radius: 5px; cursor: pointer; font-size: 11px; }
+    .btn-green { padding: 8px 18px; background: linear-gradient(135deg, var(--accent), var(--accentDark)); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; }
+
+    /* Loading */
+    #loading { display: flex; height: 100vh; align-items: center; justify-content: center; flex-direction: column; gap: 16px; background: var(--bg); }
+
+    /* Informe */
+    pre { background: var(--surfaceAlt); border: 1px solid var(--border); border-radius: 9px; padding: 18px; font-size: 12px; line-height: 1.7; color: var(--brown); font-family: 'Courier New', monospace; white-space: pre-wrap; word-break: break-word; }
+
+    /* Responsive móvil */
+    @media (max-width: 700px) {
+      #sidebar { width: 100%; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; transform: translateX(-100%); transition: transform 0.3s; }
+      #sidebar.open { transform: translateX(0); }
+      #main { width: 100%; }
+      .grid2 { grid-template-columns: 1fr; }
+      #tab-content { padding: 16px; }
+      #patient-header { padding: 10px 14px; }
+      #btn-menu { display: flex !important; }
+    }
+    #btn-menu { display: none; padding: 5px 10px; background: var(--accent); color: #fff; border: none; border-radius: 7px; font-size: 16px; cursor: pointer; }
+    #overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 99; }
+    #overlay.open { display: block; }
+  </style>
+</head>
+<body>
+
+<div id="loading">
+  <div style="font-size:48px">🧠</div>
+  <div style="font-size:15px;color:var(--textMid);font-weight:600">Cargando PsicoHC...</div>
+  <div style="font-size:12px;color:var(--textLight)">Psicóloga Carol</div>
+</div>
+
+<div id="app" style="display:none">
+  <div id="overlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div id="sidebar-header">
+      <div id="logo-row">
+        <div id="logo-icon">🧠</div>
+        <div>
+          <div style="font-size:15px;font-weight:800;color:var(--brown);line-height:1">PsicoHC</div>
+          <div style="font-size:10px;color:var(--rose);font-weight:700;margin-top:2px">Psicóloga Carol 💚💛🩷</div>
+        </div>
+      </div>
+      <div id="save-status">☁️ Guardado en la nube</div>
+      <button id="btn-new" onclick="createPatient()">+ Nueva Historia Clínica</button>
+    </div>
+    <div id="search-wrap">
+      <input id="search" placeholder="🔍 Buscar paciente..." oninput="renderList()" />
+    </div>
+    <div id="patient-list"></div>
+    <div id="sidebar-footer" id="count-label">0 historias clínicas</div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+    <!-- Bienvenida -->
+    <div id="welcome">
+      <div style="font-size:56px">🧠</div>
+      <div style="font-size:22px;font-weight:800;color:var(--brown)">PsicoHC</div>
+      <div style="font-size:14px;color:var(--rose);font-weight:700">Psicóloga Carol — Psicóloga Familiar 💚💛🩷</div>
+      <div style="font-size:13px;color:var(--textMid);max-width:380px;text-align:center;line-height:1.7">
+        Selecciona un paciente del panel o crea una nueva historia clínica para comenzar.
+      </div>
+      <button class="btn-green" onclick="createPatient()">+ Nueva Historia Clínica</button>
+      <div style="margin-top:8px;padding:8px 16px;background:var(--yellowPale);border:1px solid var(--yellow);border-radius:8px;font-size:11px;color:var(--textMid);text-align:center">
+        ☁️ Datos guardados automáticamente en la nube de Google
+      </div>
+    </div>
+
+    <!-- Vista paciente -->
+    <div id="patient-view" style="display:none;flex:1;flex-direction:column;min-width:0">
+      <div id="patient-header">
+        <button id="btn-menu" onclick="openSidebar()">☰</button>
+        <button id="btn-back" onclick="showWelcome()">← Volver</button>
+        <div>
+          <div id="hdr-hc" style="font-size:10px;font-weight:800;color:var(--accent);letter-spacing:0.14em"></div>
+          <div id="hdr-name" style="font-size:15px;font-weight:800;color:var(--brown)"></div>
+        </div>
+        <div id="hdr-date" style="margin-left:auto;font-size:11px;color:var(--textLight)"></div>
+      </div>
+      <div id="tab-nav"></div>
+      <div id="tab-content"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Firebase ──────────────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyBHcgxdXFz0vlSIBamTA_4fxd59HQ3qzIY",
+  authDomain: "psicohcpc-c36fc.firebaseapp.com",
+  projectId: "psicohcpc-c36fc",
+  storageBucket: "psicohcpc-c36fc.firebasestorage.app",
+  messagingSenderId: "1063196208857",
+  appId: "1:1063196208857:web:d24d6cf655e7ddd35b58c8"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// ── Estado global ─────────────────────────────────────────────────────────────
+let patients = [];
+let selectedId = null;
+let activeTab = "identificacion";
+let yearCounter = {};
+let saveTimer = null;
+
+// ── Utilidades ────────────────────────────────────────────────────────────────
+const uid = () => Math.random().toString(36).slice(2,9);
+const today = () => new Date().toISOString().split("T")[0];
+const fmtDate = d => d ? new Date(d+"T00:00:00").toLocaleDateString("es-VE",{day:"2-digit",month:"long",year:"numeric"}) : "—";
+
+// ── Paciente vacío ────────────────────────────────────────────────────────────
+function emptyPatient() {
+  return {
+    id: uid(), hcCode: "",
+    nombre:"", edad:"", cedula:"", fechaNac:"", lugarNac:"",
+    sexo:"", direccion:"", gradoEscolar:"", institucion:"", fechaApertura:today(),
+    repNombre:"", repParentesco:"", repTelefono:"", personasEnCasa:"", convivientes:[],
+    motivoConsulta:"",
+    embarazoPlaneado:"", cuidadosPrenatales:"", saludMadre:"", complicacionesEmbarazo:[],
+    tipoNacimiento:"", semanasEmbarazo:"", tipoParto:"", complicacionesNacimiento:[],
+    descripcionBebe:[], edadCamino:"", primerasPalabras:"", desarrolloLenguaje:"", controlEsfinteres:"",
+    seCalmafacilmente:"", expresaCulpa:"", hiperactividad:"",
+    emocionesFrecuentes:[], miedosPersistentes:[], sintomasAnsiedad:[], pensamientosNegativos:"",
+    asistenciaEscolar:"", relacionCompaneros:"", relacionDocentes:"",
+    comportamientoClase:"", referidoConducta:"", cursoPreescolar:"", dificultadesAcademicas:[],
+    horaDormir:"", horaDespertar:"", habSueno:[], habAlimentacion:[], habAutonomia:[],
+    relacionPadres:"", respuestaLimites:"", vinculosPositivos:[], reaccionFrustracion:"",
+    intervencionesPrevias:[],
+    observacionClinica:"", hipotesisClinica:"", planEvaluacion:[],
+    evaluaciones:[], sesiones:[],
+    diagnostico:[], impresionDiagnostica:"",
+    createdAt: today()
+  };
+}
+
+// ── Guardar en Firebase ───────────────────────────────────────────────────────
+function savePatient(p) {
+  setSaveStatus("saving");
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    try {
+      await db.collection("pacientes").doc(p.id).set(p);
+      setSaveStatus("saved");
+    } catch(e) { setSaveStatus("error"); }
+  }, 800);
+}
+
+function setSaveStatus(s) {
+  const el = document.getElementById("save-status");
+  if (!el) return;
+  if (s==="saving") { el.style.color="var(--yellow)"; el.textContent="💾 Guardando..."; }
+  else if (s==="error") { el.style.color="var(--danger)"; el.textContent="⚠️ Error al guardar"; }
+  else { el.style.color="var(--accent)"; el.textContent="☁️ Guardado en la nube"; }
+}
+
+// ── Paciente actual ───────────────────────────────────────────────────────────
+function getSelected() { return patients.find(p => p.id === selectedId); }
+
+function updateField(field, value) {
+  const p = getSelected();
+  if (!p) return;
+  p[field] = value;
+  savePatient({...p});
+}
+
+// ── Crear paciente ────────────────────────────────────────────────────────────
+async function createPatient() {
+  const year = new Date().getFullYear();
+  const next = (yearCounter[year]||0) + 1;
+  yearCounter[year] = next;
+  await db.collection("meta").doc("yearCounter").set(yearCounter);
+  const p = emptyPatient();
+  p.hcCode = `HC-${year}-${String(next).padStart(3,"0")}`;
+  patients.unshift(p);
+  await db.collection("pacientes").doc(p.id).set(p);
+  selectPatient(p.id);
+  renderList();
+  closeSidebar();
+}
+
+// ── Eliminar paciente ─────────────────────────────────────────────────────────
+async function deletePatient(id) {
+  if (!confirm("¿Eliminar esta historia clínica? No se puede deshacer.")) return;
+  await db.collection("pacientes").doc(id).delete();
+  patients = patients.filter(p => p.id !== id);
+  if (selectedId === id) showWelcome();
+  renderList();
+}
+
+// ── Seleccionar paciente ──────────────────────────────────────────────────────
+function selectPatient(id) {
+  selectedId = id;
+  activeTab = "identificacion";
+  const p = getSelected();
+  if (!p) return;
+  document.getElementById("welcome").style.display = "none";
+  document.getElementById("patient-view").style.display = "flex";
+  document.getElementById("hdr-hc").textContent = p.hcCode;
+  document.getElementById("hdr-name").textContent = p.nombre || "Paciente sin nombre";
+  document.getElementById("hdr-date").textContent = "Apertura: " + fmtDate(p.fechaApertura);
+  renderTabs();
+  renderTab();
+  closeSidebar();
+}
+
+function showWelcome() {
+  selectedId = null;
+  document.getElementById("welcome").style.display = "flex";
+  document.getElementById("patient-view").style.display = "none";
+}
+
+// ── Lista de pacientes ────────────────────────────────────────────────────────
+function renderList() {
+  const q = document.getElementById("search").value.toLowerCase();
+  const filtered = patients.filter(p =>
+    !q || (p.nombre||"").toLowerCase().includes(q) ||
+    (p.hcCode||"").toLowerCase().includes(q) ||
+    (p.cedula||"").includes(q)
+  );
+  const el = document.getElementById("patient-list");
+  el.innerHTML = filtered.length === 0
+    ? `<div style="text-align:center;padding:32px 0;color:var(--textLight);font-size:12px">${patients.length===0?"Crea la primera historia clínica 🌟":"Sin resultados."}</div>`
+    : filtered.map(p => `
+      <div class="patient-card" onclick="selectPatient('${p.id}')">
+        <button class="card-del" onclick="event.stopPropagation();deletePatient('${p.id}')">✕</button>
+        <div class="card-hc">${p.hcCode}</div>
+        <div class="card-name">${p.nombre||"Sin nombre"}</div>
+        <div class="card-sub">${p.edad?p.edad+" años":"Edad no registrada"}${p.gradoEscolar?" · "+p.gradoEscolar:""}</div>
+        <div class="card-date">Apertura: ${fmtDate(p.fechaApertura)} · ${(p.sesiones||[]).length} sesiones</div>
+        ${p.diagnostico&&p.diagnostico.length?`<div class="card-tags">${p.diagnostico.slice(0,3).map(d=>`<span class="card-tag">${d}</span>`).join("")}</div>`:""}
+      </div>`).join("");
+  document.getElementById("sidebar-footer").textContent = `${patients.length} historia${patients.length!==1?"s":""} clínica${patients.length!==1?"s":""}`;
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+const TABS = [
+  {key:"identificacion",label:"Identificación",icon:"👤"},
+  {key:"representante",label:"Representante",icon:"👪"},
+  {key:"motivo",label:"Motivo & Desarrollo",icon:"🌱"},
+  {key:"emocional",label:"Emocional",icon:"💭"},
+  {key:"escolar",label:"Escolar",icon:"🏫"},
+  {key:"habitos",label:"Hábitos",icon:"🌙"},
+  {key:"familiar",label:"Familiar",icon:"🏠"},
+  {key:"clinico",label:"Clínico",icon:"🔍"},
+  {key:"evaluaciones",label:"Evaluaciones",icon:"📊"},
+  {key:"sesiones",label:"Sesiones",icon:"📅"},
+  {key:"diagnostico",label:"Diagnóstico",icon:"🩺"},
+  {key:"informe",label:"Informe",icon:"📄"},
+];
+
+function renderTabs() {
+  document.getElementById("tab-nav").innerHTML = TABS.map(t =>
+    `<button class="tab-btn${activeTab===t.key?" active":""}" onclick="switchTab('${t.key}')"><span>${t.icon}</span>${t.label}</button>`
+  ).join("");
+}
+
+function switchTab(key) {
+  activeTab = key;
+  renderTabs();
+  renderTab();
+}
+
+// ── Helpers HTML ──────────────────────────────────────────────────────────────
+function field(label, inputHtml) {
+  return `<div class="field"><label>${label}</label>${inputHtml}</div>`;
+}
+function inp(fld, val, type="text", ph="") {
+  return `<input type="${type}" value="${escHtml(val||"")}" placeholder="${ph}" onchange="updateField('${fld}',this.value)" oninput="updateField('${fld}',this.value)">`;
+}
+function ta(fld, val, rows=4, ph="") {
+  return `<div class="field"><label></label><textarea rows="${rows}" placeholder="${ph}" onchange="updateField('${fld}',this.value)" oninput="updateField('${fld}',this.value)">${escHtml(val||"")}</textarea></div>`;
+}
+function taLabel(label, fld, val, rows=4, ph="") {
+  return `<div class="field"><label>${label}</label><textarea rows="${rows}" placeholder="${ph}" onchange="updateField('${fld}',this.value)" oninput="updateField('${fld}',this.value)">${escHtml(val||"")}</textarea></div>`;
+}
+function sel(fld, val, opts) {
+  return `<select onchange="updateField('${fld}',this.value)"><option value="">Seleccionar...</option>${opts.map(o=>`<option value="${o}"${val===o?" selected":""}>${o}</option>`).join("")}</select>`;
+}
+function multiChk(label, fld, val=[], opts) {
+  return `<div class="field"><label>${label}</label><div class="multichk">${opts.map(o=>`<button class="chk-btn${val.includes(o)?" on":""}" onclick="toggleArr('${fld}','${o}')">${o}</button>`).join("")}</div></div>`;
+}
+function scale(label, fld, val, max=4, labels=[]) {
+  const btns = Array.from({length:max+1},(_,i)=>`<button class="scale-btn${String(i)===String(val)?" on":""}" onclick="updateField('${fld}','${i}')">${i}</button>`).join("");
+  const lbl = val!==""&&labels[parseInt(val)] ? `<span class="scale-label">${labels[parseInt(val)]}</span>` : "";
+  return `<div class="field"><label>${label}</label><div class="scale-row">${btns}${lbl}</div></div>`;
+}
+function section(num, title, content) {
+  return `<div class="section"><div class="section-header"><div class="section-num">${num}</div><div class="section-title">${title}</div></div><div class="section-body">${content}</div></div>`;
+}
+function g2(content) { return `<div class="grid2">${content}</div>`; }
+function escHtml(s) { return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+function toggleArr(fld, opt) {
+  const p = getSelected();
+  if (!p) return;
+  const arr = p[fld]||[];
+  p[fld] = arr.includes(opt) ? arr.filter(x=>x!==opt) : [...arr, opt];
+  savePatient({...p});
+  renderTab();
+}
+
+const SL = ["Nunca","Rara vez","A veces","Frecuentemente","Siempre"];
+
+// ── Render de cada pestaña ────────────────────────────────────────────────────
+function renderTab() {
+  const p = getSelected();
+  if (!p) return;
+  const el = document.getElementById("tab-content");
+
+  if (activeTab==="identificacion") {
+    el.innerHTML = section(1,"Identificación del Paciente",
+      g2(
+        field("Nombre completo",inp("nombre",p.nombre))+
+        field("Edad (años)",inp("edad",p.edad,"number"))+
+        field("Cédula de identidad",inp("cedula",p.cedula))+
+        field("Fecha de nacimiento",inp("fechaNac",p.fechaNac,"date"))+
+        field("Lugar de nacimiento",inp("lugarNac",p.lugarNac))+
+        field("Sexo",sel("sexo",p.sexo,["Femenino","Masculino","Otro","Prefiere no especificar"]))+
+        field("Grado escolar",sel("gradoEscolar",p.gradoEscolar,["Preescolar","1er grado","2do grado","3er grado","4to grado","5to grado","6to grado","1er año secundaria","2do año secundaria","3er año secundaria","4to año secundaria","5to año secundaria"]))+
+        field("Institución educativa",inp("institucion",p.institucion))+
+        field("Fecha apertura HC",inp("fechaApertura",p.fechaApertura,"date"))
+      )+
+      taLabel("Dirección","direccion",p.direccion,2)
+    );
+  }
+
+  else if (activeTab==="representante") {
+    const convHtml = (p.convivientes||[]).map((c,i)=>`
+      <div class="item-card" style="margin-bottom:10px">
+        <div style="padding:12px 14px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+            <strong style="font-size:12px;color:var(--accentDark)">Conviviente #${i+1}</strong>
+            <button class="btn-del" onclick="delConv(${i})">✕ Eliminar</button>
+          </div>
+          <div class="grid2">
+            <div class="field"><label>Nombre y apellido</label><input value="${escHtml(c.nombre||"")}" onchange="updConv(${i},'nombre',this.value)"></div>
+            <div class="field"><label>Edad</label><input type="number" value="${c.edad||""}" onchange="updConv(${i},'edad',this.value)"></div>
+            <div class="field"><label>Ocupación</label><input value="${escHtml(c.ocupacion||"")}" onchange="updConv(${i},'ocupacion',this.value)"></div>
+            <div class="field"><label>Parentesco</label><select onchange="updConv(${i},'parentesco',this.value)"><option value="">Seleccionar...</option>${["Madre","Padre","Hermano/a","Abuelo/a","Otro familiar","No familiar"].map(o=>`<option value="${o}"${c.parentesco===o?" selected":""}>${o}</option>`).join("")}</select></div>
+          </div>
+        </div>
+      </div>`).join("");
+    el.innerHTML = section(2,"Datos del Representante",
+      g2(
+        field("Nombre del representante",inp("repNombre",p.repNombre))+
+        field("Parentesco",sel("repParentesco",p.repParentesco,["Madre","Padre","Abuelo/a","Tío/a","Tutor legal","Otro"]))+
+        field("Teléfono",inp("repTelefono",p.repTelefono))+
+        field("Personas en casa",inp("personasEnCasa",p.personasEnCasa,"number"))
+      )+
+      `<div style="margin-top:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <label style="font-size:11px;font-weight:700;color:var(--textMid);text-transform:uppercase">Convivientes en casa</label>
+          <button class="btn-add" onclick="addConv()">+ Agregar</button>
+        </div>
+        ${convHtml}
+      </div>`
+    );
+  }
+
+  else if (activeTab==="motivo") {
+    el.innerHTML =
+      section(3,"Motivo de Consulta", taLabel("Narrativa del representante","motivoConsulta",p.motivoConsulta,5,"Describe el motivo principal de consulta..."))+
+      section(4,"Historia del Embarazo",
+        g2(
+          field("¿Embarazo planeado?",sel("embarazoPlaneado",p.embarazoPlaneado,["Sí","No","No sabe"]))+
+          field("Inicio de cuidados prenatales",sel("cuidadosPrenatales",p.cuidadosPrenatales,["Primer trimestre","Segundo trimestre","Tercer trimestre","No recibió controles"]))+
+          field("Salud de la madre",sel("saludMadre",p.saludMadre,["Excelente","Buena","Regular","Complicaciones médicas"]))
+        )+
+        multiChk("Complicaciones durante el embarazo","complicacionesEmbarazo",p.complicacionesEmbarazo,["Hipertensión","Diabetes gestacional","Infecciones","Estrés significativo","Amenaza de aborto","Hospitalización","Ninguna","Otras"])
+      )+
+      section(5,"Nacimiento",
+        g2(
+          field("Término del nacimiento",sel("tipoNacimiento",p.tipoNacimiento,["A término","Prematuro","Postérmino"]))+
+          field("Semanas de gestación",inp("semanasEmbarazo",p.semanasEmbarazo,"number"))+
+          field("Tipo de parto",sel("tipoParto",p.tipoParto,["Natural","Cesárea","Instrumentado (fórceps / ventosa)"]))
+        )+
+        multiChk("Complicaciones al nacer","complicacionesNacimiento",p.complicacionesNacimiento,["Sufrimiento fetal","Incubadora","Bajo peso","Dificultad respiratoria","Ninguna","Otras"])
+      )+
+      section(6,"Desarrollo Temprano",
+        multiChk("¿Cómo era el niño/a como bebé?","descripcionBebe",p.descripcionBebe,["Tranquilo","Activo","Irritable","Lloraba mucho","Dormía bien","Dificultades para dormir"])+
+        g2(
+          field("Edad al caminar solo (meses)",inp("edadCamino",p.edadCamino,"number"))+
+          field("Primeras palabras",sel("primerasPalabras",p.primerasPalabras,["Antes de 12 meses","Entre 12 y 18 meses","Después de 18 meses","Retraso significativo"]))+
+          field("Desarrollo del lenguaje",inp("desarrolloLenguaje",p.desarrolloLenguaje,"text","ej: dificultad con la R"))+
+          field("Control de esfínteres (meses)",inp("controlEsfinteres",p.controlEsfinteres,"number"))
+        )
+      );
+  }
+
+  else if (activeTab==="emocional") {
+    el.innerHTML = section(7,"Regulación Emocional y Conductual",
+      scale("¿Se calma fácilmente?","seCalmafacilmente",p.seCalmafacilmente,4,SL)+
+      scale("¿Suele expresar culpa o remordimiento?","expresaCulpa",p.expresaCulpa,4,SL)+
+      scale("¿Presenta hiperactividad?","hiperactividad",p.hiperactividad,4,["Nunca","Rara vez","A veces","Frecuentemente","Muy frecuente"])+
+      multiChk("Emociones frecuentes","emocionesFrecuentes",p.emocionesFrecuentes,["Alegría","Miedo","Tristeza","Enojo","Ansiedad","Irritabilidad"])+
+      multiChk("Miedos persistentes","miedosPersistentes",p.miedosPersistentes,["Oscuridad","Estar solo","Animales","Escuela","Separación de padres","Otros"])+
+      multiChk("Síntomas de ansiedad","sintomasAnsiedad",p.sintomasAnsiedad,["Llanto fácil","Preocupación constante","Tensión corporal","Dificultades para dormir","Evitación","Ninguno"])+
+      field("¿Pensamientos negativos o rumiantes?",sel("pensamientosNegativos",p.pensamientosNegativos,["Sí","No","Ocasionalmente"]))
+    );
+  }
+
+  else if (activeTab==="escolar") {
+    el.innerHTML = section(8,"Área Escolar",
+      g2(
+        field("Asistencia escolar",sel("asistenciaEscolar",p.asistenciaEscolar,["Excelente","Regular","Deficiente"]))+
+        field("Relación con compañeros",sel("relacionCompaneros",p.relacionCompaneros,["Positiva","Regular","Conflictiva","Aislado"]))+
+        field("Relación con docentes",sel("relacionDocentes",p.relacionDocentes,["Buena","Regular","Conflictiva"]))+
+        field("Comportamiento en clase",sel("comportamientoClase",p.comportamientoClase,["Atento","Distraído","Inquieto","Desafiante"]))+
+        field("¿Referido por conducta/aprendizaje?",sel("referidoConducta",p.referidoConducta,["Sí","No"]))+
+        field("Curso preescolar",sel("cursoPreescolar",p.cursoPreescolar,["Ninguno","1 nivel","2 niveles","3 niveles"]))
+      )+
+      multiChk("Dificultades académicas observadas","dificultadesAcademicas",p.dificultadesAcademicas,["Dificultades para leer","Dificultades de comprensión lectora","Ritmo lento de aprendizaje","Dificultades matemáticas","Necesita ayuda constante","Ninguna"])
+    );
+  }
+
+  else if (activeTab==="habitos") {
+    el.innerHTML = section(9,"Hábitos",
+      g2(
+        field("Hora de dormir",inp("horaDormir",p.horaDormir,"time"))+
+        field("Hora de despertar",inp("horaDespertar",p.horaDespertar,"time"))
+      )+
+      multiChk("Patrones de sueño","habSueno",p.habSueno,["Duerme solo","Duerme acompañado","Duerme toda la noche","Se despierta varias veces","Tiene rituales de sueño"])+
+      multiChk("Alimentación","habAlimentacion",p.habAlimentacion,["Alimentación balanceada","Come mucho","Come poco","Selectivo con alimentos","Problemas de apetito"])+
+      multiChk("Autonomía","habAutonomia",p.habAutonomia,["Se baña solo","Higiene personal adecuada","Se viste solo","Cumple responsabilidades en casa"])
+    );
+  }
+
+  else if (activeTab==="familiar") {
+    el.innerHTML =
+      section(10,"Relaciones Familiares",
+        g2(
+          field("Relación con los padres",sel("relacionPadres",p.relacionPadres,["Cercana","Regular","Distante","Conflictiva"]))+
+          field("Respuesta a los límites",sel("respuestaLimites",p.respuestaLimites,["Los respeta","Los cuestiona","Se opone frecuentemente"]))+
+          field("Reacción ante la frustración",sel("reaccionFrustracion",p.reaccionFrustracion,["Se retira","Llora","Se enoja","Busca ayuda"]))
+        )+
+        multiChk("Vínculos positivos con familiares","vinculosPositivos",p.vinculosPositivos,["Hermanos","Primos","Abuelos","Cuidadores","Ninguno"])
+      )+
+      section(11,"Intervenciones Previas",
+        multiChk("Intervenciones recibidas anteriormente","intervencionesPrevias",p.intervencionesPrevias,["Psicopedagogía","Terapia psicológica","Terapia del lenguaje","Apoyo escolar","Medicación","Ninguna"])
+      );
+  }
+
+  else if (activeTab==="clinico") {
+    el.innerHTML =
+      section(12,"Observación Clínica", taLabel("Actitud, interacción, lenguaje, estado emocional, insight, disposición terapéutica","observacionClinica",p.observacionClinica,6,"Registrar observaciones del psicólogo..."))+
+      section(13,"Hipótesis Clínica Inicial", taLabel("Hipótesis preliminares, áreas a explorar, diagnósticos diferenciales","hipotesisClinica",p.hipotesisClinica,5,"Plantear hipótesis clínicas iniciales..."))+
+      section(14,"Plan de Evaluación", multiChk("Procedimientos y pruebas a aplicar","planEvaluacion",p.planEvaluacion,["Conners padres","Conners maestros","MOIDI","Entrevista familiar","Observación clínica","Otras pruebas"]));
+  }
+
+  else if (activeTab==="evaluaciones") {
+    const evHtml = (p.evaluaciones||[]).map((ev,i)=>`
+      <div class="item-card">
+        <div style="padding:14px 16px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+            <strong style="font-size:13px;color:var(--accentDark)">Evaluación #${i+1}</strong>
+            <button class="btn-del" onclick="delEval(${i})">Eliminar</button>
+          </div>
+          <div class="grid2">
+            <div class="field"><label>Nombre del test</label><input value="${escHtml(ev.nombre||"")}" onchange="updEval(${i},'nombre',this.value)"></div>
+            <div class="field"><label>Fecha de aplicación</label><input type="date" value="${ev.fecha||""}" onchange="updEval(${i},'fecha',this.value)"></div>
+            <div class="field"><label>Informante</label><select onchange="updEval(${i},'informante',this.value)"><option value="">Seleccionar...</option>${["Padre","Madre","Maestro","Paciente","Psicólogo"].map(o=>`<option value="${o}"${ev.informante===o?" selected":""}>${o}</option>`).join("")}</select></div>
+            <div class="field"><label>Puntaje obtenido</label><input value="${escHtml(ev.puntaje||"")}" onchange="updEval(${i},'puntaje',this.value)"></div>
+            <div class="field"><label>Percentil</label><input value="${escHtml(ev.percentil||"")}" onchange="updEval(${i},'percentil',this.value)"></div>
+          </div>
+          <div class="field"><label>Observaciones clínicas</label><textarea rows="2" onchange="updEval(${i},'observaciones',this.value)">${escHtml(ev.observaciones||"")}</textarea></div>
+        </div>
+      </div>`).join("");
+    el.innerHTML = section(15,"Evaluaciones Psicométricas",
+      `<div style="display:flex;justify-content:flex-end;margin-bottom:14px"><button class="btn-add" onclick="addEval()">+ Nueva evaluación</button></div>
+      ${evHtml || '<div style="text-align:center;padding:32px 0;color:var(--textLight);font-size:13px">No hay evaluaciones registradas aún.</div>'}`
+    );
+  }
+
+  else if (activeTab==="sesiones") {
+    const sesHtml = [...(p.sesiones||[])].reverse().map((s,ri)=>{
+      const i = (p.sesiones.length-1)-ri;
+      return `<div class="item-card">
+        <div class="item-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="item-num">${p.sesiones.length-ri}</div>
+            <div>
+              <div style="font-weight:700;font-size:13px;color:var(--brown)">${fmtDate(s.fecha)}</div>
+              ${s.objetivo?`<div style="font-size:11px;color:var(--textMid)">${escHtml(s.objetivo.slice(0,55))}${s.objetivo.length>55?"...":""}</div>`:""}
+            </div>
+          </div>
+          <span style="color:var(--accent)">▼</span>
+        </div>
+        <div class="item-body" style="display:none">
+          <div class="field"><label>Fecha</label><input type="date" value="${s.fecha||""}" onchange="updSes(${i},'fecha',this.value)"></div>
+          <div class="field"><label>Objetivo de sesión</label><textarea rows="2" onchange="updSes(${i},'objetivo',this.value)">${escHtml(s.objetivo||"")}</textarea></div>
+          <div class="field"><label>Observaciones clínicas</label><textarea rows="3" onchange="updSes(${i},'observaciones',this.value)">${escHtml(s.observaciones||"")}</textarea></div>
+          <div class="field"><label>Intervención aplicada</label><textarea rows="2" onchange="updSes(${i},'intervencion',this.value)">${escHtml(s.intervencion||"")}</textarea></div>
+          <div class="field"><label>Tareas o recomendaciones</label><textarea rows="2" onchange="updSes(${i},'tareas',this.value)">${escHtml(s.tareas||"")}</textarea></div>
+          <button class="btn-del" onclick="delSes(${i})">Eliminar sesión</button>
+        </div>
+      </div>`;
+    }).join("");
+    el.innerHTML = section(16,"Registro de Sesiones",
+      `<div style="display:flex;justify-content:flex-end;margin-bottom:14px"><button class="btn-add" onclick="addSes()">+ Nueva sesión</button></div>
+      ${sesHtml || '<div style="text-align:center;padding:32px 0;color:var(--textLight);font-size:13px">No hay sesiones registradas aún.</div>'}`
+    );
+  }
+
+  else if (activeTab==="diagnostico") {
+    el.innerHTML =
+      section(17,"Diagnóstico", multiChk("Diagnósticos clínicos","diagnostico",p.diagnostico,["TDAH","Trastorno de ansiedad","Trastorno depresivo","Trastorno oposicionista desafiante","TEA","Dificultades de aprendizaje","Otro"]))+
+      section(18,"Impresión Diagnóstica", taLabel("Observaciones clínicas finales e impresión diagnóstica","impresionDiagnostica",p.impresionDiagnostica,7,"Registrar impresión diagnóstica detallada..."));
+  }
+
+  else if (activeTab==="informe") {
+    const inf = generarInforme(p);
+    el.innerHTML = section(18,"Borrador de Informe Clínico",
+      `<div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+        <button class="btn-green" onclick="copiarInforme()" id="btn-copy">📋 Copiar informe</button>
+      </div>
+      <pre id="informe-text">${escHtml(inf)}</pre>
+      <p style="font-size:11px;color:var(--textLight);margin-top:10px;font-style:italic">* Borrador generado automáticamente. Revise y complete antes de emitirlo.</p>`
+    );
+  }
+}
+
+// ── Informe ───────────────────────────────────────────────────────────────────
+function generarInforme(p) {
+  return `INFORME PSICOLÓGICO
+═══════════════════════════════════════════════
+Psicóloga Carol — Psicóloga Familiar
+
+Historia Clínica: ${p.hcCode}
+Fecha de emisión: ${fmtDate(today())}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+I. DATOS DEL PACIENTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Nombre: ${p.nombre||"—"}
+Edad: ${p.edad?p.edad+" años":"—"}
+Cédula: ${p.cedula||"—"}
+Fecha de nacimiento: ${fmtDate(p.fechaNac)}
+Sexo: ${p.sexo||"—"}
+Grado escolar: ${p.gradoEscolar||"—"}
+Institución: ${p.institucion||"—"}
+Representante: ${p.repNombre||"—"} (${p.repParentesco||"—"})
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+II. MOTIVO DE CONSULTA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${p.motivoConsulta||"No registrado."}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+III. ANTECEDENTES RELEVANTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Embarazo: ${p.embarazoPlaneado?"Planeado: "+p.embarazoPlaneado+". ":""}${p.saludMadre?"Salud materna: "+p.saludMadre+". ":""}${(p.complicacionesEmbarazo||[]).length?"Complicaciones: "+p.complicacionesEmbarazo.join(", ")+".":""}
+Nacimiento: ${p.tipoNacimiento||"—"}${p.semanasEmbarazo?" ("+p.semanasEmbarazo+" semanas)":""}. Parto: ${p.tipoParto||"—"}.
+Desarrollo: Caminó a los ${p.edadCamino||"—"} meses. Primeras palabras: ${p.primerasPalabras||"—"}.
+Intervenciones previas: ${(p.intervencionesPrevias||[]).length?p.intervencionesPrevias.join(", "):"Ninguna"}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+IV. EVALUACIONES APLICADAS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${(p.evaluaciones||[]).length===0?"No se registraron evaluaciones.":(p.evaluaciones||[]).map((e,i)=>`${i+1}. ${e.nombre||"Sin nombre"} (${fmtDate(e.fecha)})\n   Informante: ${e.informante||"—"} | Puntaje: ${e.puntaje||"—"} | Percentil: ${e.percentil||"—"}`).join("\n\n")}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+V. OBSERVACIÓN CLÍNICA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${p.observacionClinica||"No registrada."}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VI. IMPRESIÓN DIAGNÓSTICA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Diagnósticos: ${(p.diagnostico||[]).length?p.diagnostico.join(", "):"—"}
+${p.impresionDiagnostica||"No registrada."}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VII. RECOMENDACIONES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[Completar por la psicóloga]
+
+═══════════════════════════════════════════════
+Psicóloga Carol — Psicóloga Familiar
+Firma: _______________________________________
+Fecha: ${fmtDate(today())}
+═══════════════════════════════════════════════`;
+}
+
+function copiarInforme() {
+  const txt = document.getElementById("informe-text").textContent;
+  navigator.clipboard.writeText(txt).then(()=>{
+    const btn = document.getElementById("btn-copy");
+    btn.textContent = "✓ Copiado";
+    setTimeout(()=>{ btn.textContent = "📋 Copiar informe"; }, 2000);
+  });
+}
+
+// ── Convivientes ──────────────────────────────────────────────────────────────
+function addConv() {
+  const p = getSelected();
+  p.convivientes = [...(p.convivientes||[]), {id:uid(),nombre:"",edad:"",ocupacion:"",parentesco:""}];
+  savePatient({...p}); renderTab();
+}
+function updConv(i,f,v) {
+  const p = getSelected();
+  p.convivientes[i][f]=v;
+  savePatient({...p});
+}
+function delConv(i) {
+  const p = getSelected();
+  p.convivientes = p.convivientes.filter((_,x)=>x!==i);
+  savePatient({...p}); renderTab();
+}
+
+// ── Evaluaciones ──────────────────────────────────────────────────────────────
+function addEval() {
+  const p = getSelected();
+  p.evaluaciones = [...(p.evaluaciones||[]), {id:uid(),nombre:"",fecha:today(),informante:"",puntaje:"",percentil:"",observaciones:""}];
+  savePatient({...p}); renderTab();
+}
+function updEval(i,f,v) {
+  const p = getSelected();
+  p.evaluaciones[i][f]=v;
+  savePatient({...p});
+}
+function delEval(i) {
+  const p = getSelected();
+  p.evaluaciones = p.evaluaciones.filter((_,x)=>x!==i);
+  savePatient({...p}); renderTab();
+}
+
+// ── Sesiones ──────────────────────────────────────────────────────────────────
+function addSes() {
+  const p = getSelected();
+  p.sesiones = [...(p.sesiones||[]), {id:uid(),fecha:today(),objetivo:"",observaciones:"",intervencion:"",tareas:""}];
+  savePatient({...p}); renderTab();
+}
+function updSes(i,f,v) {
+  const p = getSelected();
+  p.sesiones[i][f]=v;
+  savePatient({...p});
+}
+function delSes(i) {
+  const p = getSelected();
+  p.sesiones = p.sesiones.filter((_,x)=>x!==i);
+  savePatient({...p}); renderTab();
+}
+
+// ── Sidebar móvil ─────────────────────────────────────────────────────────────
+function openSidebar() {
+  document.getElementById("sidebar").classList.add("open");
+  document.getElementById("overlay").classList.add("open");
+}
+function closeSidebar() {
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("overlay").classList.remove("open");
+}
+
+// ── Inicialización ────────────────────────────────────────────────────────────
+async function init() {
+  // Cargar contador de año
+  try {
+    const metaDoc = await db.collection("meta").doc("yearCounter").get();
+    if (metaDoc.exists) yearCounter = metaDoc.data();
+  } catch(e) {}
+
+  // Escuchar cambios en tiempo real
+  db.collection("pacientes").orderBy("createdAt","desc").onSnapshot(snap => {
+    patients = snap.docs.map(d => ({...d.data(), id: d.id}));
+    renderList();
+    if (selectedId) {
+      const p = getSelected();
+      if (p) {
+        document.getElementById("hdr-name").textContent = p.nombre || "Paciente sin nombre";
+        renderTab();
+      }
+    }
+  });
+
+  document.getElementById("loading").style.display = "none";
+  document.getElementById("app").style.display = "flex";
+}
+
+init();
+</script>
+</body>
+</html>
