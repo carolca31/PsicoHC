@@ -445,6 +445,7 @@ pre{background:var(--alt);border:1px solid var(--border);border-radius:9px;paddi
         <div id="prof-name-display" style="font-size:10px;color:var(--accent);font-weight:700;margin-top:2px">Psicología Clínica</div>
       </div>
       <button onclick="openSettings()" style="padding:5px 8px;background:var(--alt);border:1.5px solid var(--border);border-radius:7px;font-size:14px;color:var(--mid)" title="Ajustes del perfil">⚙️</button>
+      <button id="btn-admin" onclick="showAdminPanel()" style="display:none;padding:5px 8px;background:var(--alt);border:1.5px solid var(--border);border-radius:7px;font-size:11px;font-weight:700;color:#1A3A6E;cursor:pointer;" title="Panel de administración">Admin</button>
     </div>
     <div id="save-st">Guardado en la nube</div>
     <div id="mode-badge" style="display:none;font-size:9px;font-weight:700;text-align:center;padding:2px 6px;background:var(--ypl);color:var(--mid);border-radius:4px;margin-top:3px">Modo local (sin internet)</div>
@@ -896,17 +897,45 @@ function showWelcome(){
 function renderList(){
   const q=(document.getElementById("srch").value||"").toLowerCase();
   const f=patients.filter(p=>!q||(p.nombre||"").toLowerCase().includes(q)||(p.hcCode||"").toLowerCase().includes(q)||(p.cedula||"").includes(q));
-  document.getElementById("plist").innerHTML=f.length===0
-    ?`<div style="text-align:center;padding:28px 0;color:var(--light);font-size:12px">${patients.length===0?"Crea la primera historia clínica ":"Sin resultados."}</div>`
-    :f.map(p=>`<div class="pcard" onclick="selectP('${p.id}')">
+  if(f.length===0){
+    document.getElementById("plist").innerHTML=`<div style="text-align:center;padding:28px 0;color:var(--light);font-size:12px">${patients.length===0?"Crea la primera historia clínica":"Sin resultados."}</div>`;
+    document.getElementById("sfoot").textContent=`${patients.length} historia${patients.length!==1?"s":""} clínica${patients.length!==1?"s":""}`;
+    return;
+  }
+  // Grupos sin emojis nuevos — solo los que ya existían en el sistema
+  const GRUPOS=[
+    {label:"Infantil",tipos:["Infantil (0-11 años)"]},
+    {label:"Adolescente",tipos:["Adolescente (12-17 años)"]},
+    {label:"Adulto",tipos:["Adulto"]},
+    {label:"Adulto Mayor",tipos:["Adulto mayor (65+)"]},
+    {label:"Pareja",tipos:["Pareja"]},
+    {label:"Familia",tipos:["Familia"]},
+    {label:"Grupo terapéutico",tipos:["Grupo terapéutico"]},
+  ];
+  function cardHTML(p){
+    const dx=p.diagnosticoAdulto||p.diagnostico||[];
+    return `<div class="pcard" onclick="selectP('${p.id}')">
       <button class="pc-del" onclick="event.stopPropagation();deletePatient('${p.id}')">🗑</button>
       <div class="pc-hc">${p.hcCode}</div>
       <div class="pc-name">${esc(p.nombre)||"Sin nombre"}</div>
       <div class="pc-sub">${p.edad?p.edad+" años":"Edad no registrada"}${p.gradoEscolar?" · "+p.gradoEscolar:""}</div>
-      ${p.tipoHistoria?`<div style="display:inline-block;margin-top:4px;padding:2px 8px;background:var(--cobalt-light);color:var(--cobalt);border-radius:10px;font-size:10px;font-weight:700">${p.tipoHistoria}</div>`:""}
       <div class="pc-date">Apertura: ${fmtDate(p.fechaApertura)} · ${(p.sesiones||[]).length} sesiones</div>
-      ${p.diagnostico&&p.diagnostico.length?`<div class="pc-tags">${p.diagnostico.slice(0,3).map(d=>`<span class="pc-tag">${d}</span>`).join("")}</div>`:""}
-    </div>`).join("");
+      ${dx.length?`<div class="pc-tags">${dx.slice(0,2).map(d=>`<span class="pc-tag">${d}</span>`).join("")}</div>`:""}
+    </div>`;
+  }
+  let out="";
+  GRUPOS.forEach(g=>{
+    const items=f.filter(p=>g.tipos.includes(p.tipoHistoria));
+    if(!items.length)return;
+    out+=`<div style="padding:6px 10px 4px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--mid);background:var(--alt);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">${g.label} <span style="font-weight:400;opacity:.6">(${items.length})</span></div>`;
+    out+=items.map(p=>cardHTML(p)).join("");
+  });
+  const sinTipo=f.filter(p=>!p.tipoHistoria||!GRUPOS.some(g=>g.tipos.includes(p.tipoHistoria)));
+  if(sinTipo.length){
+    out+=`<div style="padding:6px 10px 4px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--mid);background:var(--alt);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">Otras (${sinTipo.length})</div>`;
+    out+=sinTipo.map(p=>cardHTML(p)).join("");
+  }
+  document.getElementById("plist").innerHTML=out;
   document.getElementById("sfoot").textContent=`${patients.length} historia${patients.length!==1?"s":""} clínica${patients.length!==1?"s":""}`;
 }
 
@@ -4813,6 +4842,165 @@ const MODULE_LABELS={
   "adulto-mayor":"Adulto + Adulto Mayor — $12/mes",
   "pareja-familia-grupo":"Pareja + Familia + Grupo — $12/mes"
 };
+// ── Admin ─────────────────────────────────────────────────────────────────────
+const ADMIN_EMAILS=["carolca31@gmail.com"];
+function isAdmin(){return currentUser&&ADMIN_EMAILS.includes(currentUser.email);}
+
+async function adminSetPlan(uid,email,plan,modules){
+  try{
+    await db.collection("users").doc(uid).set({plan,modules,email,updatedAt:new Date().toISOString(),updatedBy:currentUser.email},{merge:true});
+    return true;
+  }catch(e){console.error(e);return false;}
+}
+
+async function adminSearchUser(q){
+  try{
+    const snap=await db.collection("users").where("email","==",q.trim().toLowerCase()).get();
+    return snap.docs.map(d=>({uid:d.id,...d.data()}));
+  }catch(e){return [];}
+}
+
+async function adminGetAllUsers(){
+  try{
+    const snap=await db.collection("users").orderBy("createdAt","desc").limit(100).get();
+    return snap.docs.map(d=>({uid:d.id,...d.data()}));
+  }catch(e){return [];}
+}
+
+function adminUserCard(u){
+  const plan=u.plan||"free";
+  const mods=u.modules||[];
+  const isFull=plan==="full";
+  const planLabel=isFull?"Plan Completo":mods.length?mods.map(m=>MODULE_LABELS[m]||m).join(", "):"Plan Gratuito";
+  const planColor=isFull?"#16A34A":mods.length?"#0891B2":"#94A3B8";
+  function btnStyle(active){
+    return `padding:7px 11px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid ${active?"var(--act-c,#1A3A6E)":"#E2E8F0"};background:${active?"var(--act-c,#1A3A6E)":"#F8FAFC"};color:${active?"#fff":"#475569"};transition:all .15s`;
+  }
+  return `<div style="border:1.5px solid #E2E8F0;border-radius:12px;padding:14px 16px;margin-bottom:10px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:12px;">
+      <div style="min-width:0">
+        <div style="font-size:13px;font-weight:700;color:#1E293B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${u.email||"Sin correo"}</div>
+        <div style="font-size:10px;color:#94A3B8;margin-top:2px;font-family:monospace;">${u.uid}</div>
+        <div style="font-size:10px;color:#64748B;margin-top:2px;">Registro: ${u.createdAt?u.createdAt.slice(0,10):"—"}</div>
+      </div>
+      <div style="flex-shrink:0;font-size:11px;font-weight:700;color:${planColor};background:${planColor}18;padding:4px 10px;border-radius:20px;white-space:nowrap;">${planLabel}</div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      <button style="${btnStyle(plan==="free"&&!mods.length)};--act-c:#64748B" onclick="adminActivate('${u.uid}','${u.email||""}','free',[])">Gratuito</button>
+      <button style="${btnStyle(mods.includes("infantil-adolescente")&&!isFull)};--act-c:#0891B2" onclick="adminActivate('${u.uid}','${u.email||""}','modules',['infantil-adolescente'])">Infantil + Adolescente</button>
+      <button style="${btnStyle(mods.includes("adulto-mayor")&&!isFull)};--act-c:#0891B2" onclick="adminActivate('${u.uid}','${u.email||""}','modules',['adulto-mayor'])">Adulto + Adulto Mayor</button>
+      <button style="${btnStyle(mods.includes("pareja-familia-grupo")&&!isFull)};--act-c:#0891B2" onclick="adminActivate('${u.uid}','${u.email||""}','modules',['pareja-familia-grupo'])">Pareja + Familia + Grupo</button>
+      <button style="${btnStyle(isFull)};--act-c:#16A34A" onclick="adminActivate('${u.uid}','${u.email||""}','full',[])">Plan Completo — $25</button>
+    </div>
+  </div>`;
+}
+
+function showAdminPanel(){
+  if(!isAdmin()){alert("Acceso no autorizado.");return;}
+  const ex=document.getElementById("admin-panel");if(ex)ex.remove();
+  const p=document.createElement("div");
+  p.id="admin-panel";
+  p.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:3000;display:flex;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto;";
+  p.innerHTML=`
+  <div style="background:#fff;border-radius:16px;width:100%;max-width:640px;margin-top:8px;box-shadow:0 24px 64px rgba(0,0,0,.3);overflow:hidden;">
+    <div style="background:linear-gradient(135deg,#1A3A6E,#0891B2);padding:18px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:1;">
+      <div>
+        <div style="font-size:16px;font-weight:800;color:#fff;">Panel de Administración</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.75);margin-top:2px;">Gestión de planes · MedHC</div>
+      </div>
+      <button onclick="document.getElementById('admin-panel').remove()" style="padding:7px 14px;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">Cerrar</button>
+    </div>
+    <div style="padding:20px;">
+      <div style="margin-bottom:20px;">
+        <div style="font-size:11px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Buscar usuario por correo</div>
+        <div style="display:flex;gap:8px;">
+          <input id="adm-q" type="email" placeholder="correo@ejemplo.com" style="flex:1;padding:10px 14px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:13px;outline:none;" onkeydown="if(event.key==='Enter')adminDoSearch()">
+          <button onclick="adminDoSearch()" style="padding:10px 18px;background:#1A3A6E;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">Buscar</button>
+        </div>
+        <div id="adm-search-res" style="margin-top:12px;"></div>
+      </div>
+      <div>
+        <!-- Link de pago -->
+        <div style="margin-bottom:18px;padding:14px;background:#F0FDF4;border-radius:12px;border:1.5px solid #86EFAC;">
+          <div style="font-size:11px;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Link de pago</div>
+          <div style="font-size:11px;color:#166534;margin-bottom:8px;">Pega el link de pago (PayPal, Binance, Pagomovil, etc.). Los usuarios lo verán al abrir su plan.</div>
+          <div style="display:flex;gap:8px;">
+            <input id="adm-pay-input" type="url" placeholder="https://..." style="flex:1;padding:9px 12px;border:1.5px solid #86EFAC;border-radius:8px;font-size:12px;outline:none;">
+            <button onclick="adminSavePayLink()" style="padding:9px 16px;background:#16A34A;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;">Guardar</button>
+          </div>
+          <div id="adm-pay-status" style="margin-top:7px;font-size:11px;color:#64748B;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div style="font-size:11px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.06em;">Todos los usuarios</div>
+          <button onclick="adminLoadUsers()" style="padding:6px 14px;background:#F0F9FF;color:#0891B2;border:1.5px solid #BAE6FD;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">Cargar / Actualizar</button>
+        </div>
+        <div id="adm-users" style="font-size:12px;color:#94A3B8;padding:20px;text-align:center;border:1.5px dashed #E2E8F0;border-radius:10px;">Toca "Cargar / Actualizar" para ver los usuarios</div>
+      </div>
+    </div>
+  </div>`;
+  p.addEventListener("click",e=>{if(e.target===p)p.remove();});
+  document.body.appendChild(p);
+}
+
+async function adminDoSearch(){
+  const q=(document.getElementById("adm-q")||{}).value||"";
+  if(!q.trim())return;
+  const el=document.getElementById("adm-search-res");
+  el.innerHTML=`<div style="color:#64748B;font-size:12px;padding:8px;">Buscando...</div>`;
+  const users=await adminSearchUser(q);
+  el.innerHTML=users.length?users.map(u=>adminUserCard(u)).join(""):`<div style="color:#DC2626;font-size:12px;padding:10px;background:#FEF2F2;border-radius:8px;">No se encontró ningún usuario con ese correo.</div>`;
+}
+
+async function adminLoadUsers(){
+  const el=document.getElementById("adm-users");
+  el.innerHTML=`<div style="color:#64748B;font-size:12px;padding:8px;text-align:center;">Cargando...</div>`;
+  const users=await adminGetAllUsers();
+  el.innerHTML=users.length?users.map(u=>adminUserCard(u)).join(""):`<div style="color:#94A3B8;font-size:12px;padding:8px;text-align:center;">No hay usuarios registrados aún.</div>`;
+}
+
+async function adminSavePayLink(){
+  const inp=document.getElementById('adm-pay-input');
+  const link=inp?inp.value.trim():'';
+  if(!link){alert('Ingresa un link válido.');return;}
+  try{
+    await db.collection('config').doc('paymentLink').set({url:link,updatedAt:new Date().toISOString()},{merge:true});
+    const st=document.getElementById('adm-pay-status');
+    if(st)st.textContent='Guardado: '+link;
+    showToast('Link de pago guardado');
+  }catch(e){alert('Error al guardar: '+e.message);}
+}
+
+async function loadPaymentLink(){
+  try{
+    const doc=await db.collection('config').doc('paymentLink').get();
+    if(doc.exists&&doc.data().url){
+      const url=doc.data().url;
+      // Show in plan modal
+      const sec=document.getElementById('pay-link-sec');
+      const lnk=document.getElementById('pay-link-btn');
+      if(sec)sec.style.display='block';
+      if(lnk){lnk.href=url;lnk.textContent='Pagar ahora';}
+      // Pre-fill admin if open
+      const inp=document.getElementById('adm-pay-input');
+      const st=document.getElementById('adm-pay-status');
+      if(inp)inp.value=url;
+      if(st)st.textContent='Actual: '+url;
+    }
+  }catch(e){}
+}
+
+async function adminActivate(uid,email,plan,modules){
+  const ok=await adminSetPlan(uid,email,plan,modules);
+  if(ok){
+    const q=(document.getElementById("adm-q")||{}).value||"";
+    if(q.trim())await adminDoSearch();else await adminLoadUsers();
+    const t=document.createElement("div");
+    t.style.cssText="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#16A34A;color:#fff;padding:10px 22px;border-radius:10px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2)";
+    t.textContent="Plan actualizado correctamente";
+    document.body.appendChild(t);setTimeout(()=>t.remove(),2500);
+  }else{alert("Error al actualizar. Verifica los permisos de Firestore.");}
+}
+
 const TYPE_TO_MODULE={
   "Infantil (0-11 años)":"infantil-adolescente",
   "Adolescente (12-17 años)":"infantil-adolescente",
@@ -4901,8 +5089,8 @@ function showPlanModal(){
       <div style="font-size:12px;font-weight:700;color:#0369A1;margin-bottom:6px">Para activar o actualizar tu plan:</div>
       <div style="font-size:12px;color:#0C4A6E;line-height:1.6">Contáctanos por WhatsApp o correo indicando tu email de Google (<b>${currentUser?currentUser.email:''}</b>) y el plan que deseas. Te activamos en minutos.</div>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-        <a href="https://wa.me/?text=Hola, quiero activar un plan en MedHC. Mi correo es ${currentUser?currentUser.email:''}" target="_blank" style="padding:7px 14px;background:#25D366;color:#fff;border-radius:7px;font-size:12px;font-weight:700;text-decoration:none">WhatsApp</a>
-        <a href="mailto:?subject=Activar plan MedHC&body=Hola, quiero activar un plan. Mi correo es ${currentUser?currentUser.email:''}" style="padding:7px 14px;background:#0891B2;color:#fff;border-radius:7px;font-size:12px;font-weight:700;text-decoration:none">Correo</a>
+        <a href="https://wa.me/584125255637?text=Hola, quiero activar un plan en MedHC. Mi correo es ${currentUser?currentUser.email:''}" target="_blank" style="padding:7px 14px;background:#25D366;color:#fff;border-radius:7px;font-size:12px;font-weight:700;text-decoration:none">WhatsApp</a>
+        <a href="mailto:medhc31@gmail.com?subject=Activar plan MedHC&body=Hola, quiero activar un plan. Mi correo es ${currentUser?currentUser.email:''}" style="padding:7px 14px;background:#0891B2;color:#fff;border-radius:7px;font-size:12px;font-weight:700;text-decoration:none">Correo</a>
       </div>
     </div>
   </div>`;
@@ -4981,6 +5169,9 @@ function updatePlanBadge(){
   }
   const emailEl=document.getElementById("user-email-display");
   if(emailEl&&currentUser)emailEl.textContent=currentUser.email;
+  // Show admin button only for admins
+  const adminBtn=document.getElementById("btn-admin");
+  if(adminBtn)adminBtn.style.display=isAdmin()?"block":"none";
 }
 
 // ═══════════════════════════════════════════
