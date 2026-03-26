@@ -10561,8 +10561,11 @@ function openComunidad(){
   console.log("[MedHC] openComunidad hasCom="+hasCom+" plan="+JSON.stringify(userPlan));
   if(!hasCom){showPlanModal();return;}
   const overlay=document.getElementById("comunidad-overlay");
-  if(overlay){overlay.classList.add("com-open");}
-  comRenderLista();
+  if(overlay){
+    overlay.classList.add("com-open");
+    // Wait for DOM to render before filling content
+    setTimeout(function(){comRenderLista();}, 50);
+  }
 }
 function closeComunidad(){const o=document.getElementById("comunidad-overlay");if(o)o.classList.remove("com-open");}
 
@@ -10579,7 +10582,9 @@ function updateComunidadBtn(){
 }
 
 function comRenderLista(){
-  const el=document.getElementById("com-content");if(!el)return;
+  const el=document.getElementById("com-content");
+  console.log("[MedHC] comRenderLista el=",el,"count=",comunidadIntervenciones.length);
+  if(!el){console.error("[MedHC] com-content NOT FOUND");return;}
   if(!comunidadIntervenciones.length){
     el.innerHTML=`<div style="text-align:center;padding:48px 20px;color:var(--mid)"><div style="width:56px;height:56px;background:#EDE9FE;border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></div><div style="font-size:15px;font-weight:700;color:#1E293B;margin-bottom:6px">Sin intervenciones aún</div><div style="font-size:12px;margin-bottom:20px">Registra tu primera intervención comunitaria</div><button onclick="comAbrirFlujo()" style="padding:11px 24px;background:linear-gradient(135deg,#4C1D95,#7C3AED);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">+ Nueva Intervención</button></div>`;
     return;
