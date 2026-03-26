@@ -583,14 +583,14 @@ function closeBg(e,el){
       <span class="ft-name">MedHC</span>
     </div>
     <div class="ft-links">
-      <a href="#">Términos de Uso</a>
-      <a href="#">Política de Privacidad</a>
-      <a href="#">Protección de Datos</a>
-      <a href="#">Cookies</a>
-      <a href="#">HIPAA</a>
+      <a href="#" onclick="openModal('m-terminos')">Términos de Uso</a>
+      <a href="#" onclick="openModal('m-privacidad')">Política de Privacidad</a>
+      
+      
+      
     </div>
   </div>
-  <p class="ft-copy">© 2024 MedHC — Global Medical Records. Todos los derechos reservados.</p>
+  <p class="ft-copy">© 2026 MedHC — Global Medical Records. Todos los derechos reservados.</p>
 </footer>
 
 <!-- ══ MODALS ══ -->
@@ -704,28 +704,57 @@ function closeBg(e,el){
   </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-// Scroll progress
-window.addEventListener('scroll', () => {
-  const scrolled = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
-  document.getElementById('scroll-progress').style.width = scrolled + '%';
-  document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY > 20);
-});
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
 
-// Dropdown
-function toggleMenu() {
-  document.getElementById('menuBtn').classList.toggle('open');
-  document.getElementById('dropMenu').classList.toggle('open');
-}
-document.addEventListener('click', e => {
-  const btn = document.getElementById('menuBtn');
-  const menu = document.getElementById('dropMenu');
-  if (!btn.contains(e.target) && !menu.contains(e.target)) {
-    btn.classList.remove('open');
-    menu.classList.remove('open');
-  }
-});
+<!-- MODAL: Términos de Uso -->
+<div class="modal-overlay" id="m-terminos" onclick="closeBg(event,this)">
+  <div class="modal" style="max-width:640px;max-height:85vh;overflow-y:auto">
+    <div class="modal-hd">
+      <button class="modal-close" onclick="closeModal('m-terminos')"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      <div class="modal-hd-ico"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+      <h2>Términos de Uso</h2><p>Última actualización: marzo 2026</p>
+    </div>
+    <div class="modal-body">
+      <h4>1. Aceptación de los términos</h4>
+      <p>Al acceder y utilizar MedHC ("la Plataforma"), usted acepta quedar vinculado por estos Términos de Uso. Si no está de acuerdo, le pedimos que no utilice la Plataforma.</p>
+      <h4>2. Descripción del servicio</h4>
+      <p>MedHC es una herramienta digital de gestión clínica diseñada exclusivamente para profesionales de la salud mental debidamente certificados. Permite registrar, organizar y gestionar historias clínicas, sesiones, evaluaciones y diagnósticos de manera digital y segura.</p>
+      <h4>3. Uso exclusivamente profesional</h4>
+      <p>MedHC está destinada únicamente a profesionales de la salud mental habilitados para el ejercicio clínico. El usuario declara y garantiza que cuenta con la formación y certificaciones requeridas por la legislación de su país. Queda expresamente prohibido el uso por personas no autorizadas o con fines distintos a la gestión clínica profesional.</p>
+      <h4>4. Responsabilidad del usuario</h4>
+      <p>El especialista es el único responsable de: la veracidad y exactitud de la información clínica que ingrese; las decisiones clínicas que adopte; la confidencialidad de sus credenciales de acceso; el cumplimiento de la normativa de protección de datos de su país; y obtener el consentimiento informado de sus pacientes para el registro digital de su información.</p>
+      <h4>5. Limitación de responsabilidad de MedHC</h4>
+      <p>MedHC es una herramienta de apoyo a la gestión clínica y en ningún caso sustituye el criterio ni la responsabilidad profesional del especialista. MedHC no se hace responsable por errores en la información ingresada por el usuario, decisiones clínicas adoptadas con base en la Plataforma, daños derivados del mal uso, ni interrupciones del servicio por causas fuera de nuestro control.</p>
+      <h4>6. Propiedad intelectual</h4>
+      <p>Todo el contenido, diseño, código y marca de MedHC son propiedad exclusiva de MedHC — Global Medical Records. Queda prohibida su reproducción o uso sin autorización expresa y por escrito.</p>
+      <h4>7. Modificaciones</h4>
+      <p>MedHC se reserva el derecho de modificar estos Términos en cualquier momento. Las modificaciones serán notificadas a los usuarios registrados y entrarán en vigor desde su publicación.</p>
+      <h4>8. Legislación aplicable</h4>
+      <p>Estos Términos se rigen por los principios generales del derecho internacional aplicables a servicios digitales y la normativa de protección de datos vigente en el país de operación del usuario.</p>
+    </div>
+  </div>
+</div>
 
-// Modals
-function openModal(id) {
-  
+<!-- MODAL: Política de Privacidad -->
+<div class="modal-overlay" id="m-privacidad" onclick="closeBg(event,this)">
+  <div class="modal" style="max-width:640px;max-height:85vh;overflow-y:auto">
+    <div class="modal-hd">
+      <button class="modal-close" onclick="closeModal('m-privacidad')"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></button>
+      <div class="modal-hd-ico"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <h2>Política de Privacidad</h2><p>Última actualización: marzo 2026</p>
+    </div>
+    <div class="modal-body">
+      <h4>1. Responsable del tratamiento</h4>
+      <p>MedHC — Global Medical Records es responsable del tratamiento de los datos personales de los usuarios, conforme al Reglamento General de Protección de Datos (GDPR) y demás normativas aplicables en América Latina.</p>
+      <h4>2. Datos que recopilamos</h4>
+      <p>Recopilamos únicamente los datos necesarios para prestar el servicio: <strong>datos del especialista</strong> (correo electrónico y perfil profesional); <strong>datos clínicos</strong> ingresados voluntariamente por el especialista sobre sus pacientes; y <strong>datos de uso técnico</strong> básicos para mejorar la Plataforma.</p>
+      <h4>3. Almacenamiento y seguridad</h4>
+      <p>Toda la información se almacena en servidores seguros de Google Firebase, con autenticación de usuarios y control de acceso. Los datos clínicos son accesibles exclusivamente por el especialista titular de la cuenta.</p>
+      <h4>4. Responsabilidad sobre datos de pacientes</h4>
+      <p>El especialista actúa como responsable del tratamiento de los datos de sus pacientes. Es su responsabilidad obtener el consentimiento informado de sus pacientes para el registro digital de su información, conforme a la legislación de su país.</p>
+      <h4>5. No compartimos sus datos</h4>
+      <p>MedHC no vende, cede ni comparte los datos de los usuarios con terceros. Ante un requerimiento legal expreso de autoridad competente, MedHC únicamente podría proporcionar los datos de registro del especialista (correo electrónico y datos de autenticación). Los datos clínicos registrados por el especialista son técnicamente inaccesibles para MedHC, por lo que no pueden ser entregados bajo ninguna circunstancia.</p>
+      <h4>6. Derechos del usuario</h4>
+      <p>Tiene derecho a acceder, rectificar y cancelar sus datos personales. Para ejercer estos derechos contáctenos en: <strong><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="375a52535f54040677505a565e5b1954585a">[email&#160;protected]</a></strong></p>
+      <h4>7. Eliminación de cuenta</h4>
+      <p>Puede solicitar la eliminación completa de su cuenta y to
