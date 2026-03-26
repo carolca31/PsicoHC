@@ -487,7 +487,7 @@ function updateTypeComunidadSection(){
       <button onclick="logOut()" title="Cerrar sesión" style="padding:4px 8px;background:var(--rpl);color:var(--danger);border:none;border-radius:6px;font-size:11px;font-weight:700;flex-shrink:0;margin-left:6px">Salir</button>
     </div>
   </div>
-  <button id="btn-comunidad" onclick="openComunidad()" style="display:none;width:calc(100% - 16px);margin:4px 8px;padding:9px 12px;background:linear-gradient(135deg,#4C1D95,#7C3AED);color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;display:none;align-items:center;gap:8px;text-align:left">
+  <button id="btn-comunidad" onclick="openComunidad()" style="display:none;width:calc(100% - 16px);margin:4px 8px;padding:9px 12px;background:linear-gradient(135deg,#4C1D95,#7C3AED);color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;align-items:center;gap:8px;text-align:left">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
     Programas y Comunidades
   </button>
@@ -5116,6 +5116,11 @@ async function adminActivate(uid,email,plan,modules){
     const q=(document.getElementById("adm-q")||{}).value||"";
     if(q.trim())await adminDoSearch();else await adminLoadUsers();
     showToastMsg("Plan actualizado");
+    // If activating for current user, reload their plan immediately
+    if(currentUser&&currentUser.uid===uid){
+      await loadUserPlan(uid);
+      updatePlanBadge();
+    }
   }else{alert("Error al actualizar. Verifica permisos de Firestore.");}
 }
 
@@ -5422,6 +5427,7 @@ async function init(){
         });
       // Update plan display in sidebar
       updatePlanBadge();
+      if(typeof updateComunidadBtn==="function")updateComunidadBtn();
     } else {
       // No hay sesión — mostrar login
       currentUser=null;
@@ -10707,7 +10713,7 @@ init();
 </div>
 
 <!-- PROGRAMAS Y COMUNIDADES -->
-<div id="comunidad-overlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:800;overflow-y:auto;">
+<div id="comunidad-overlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:800;overflow-y:auto;flex-direction:column;">
   <div style="max-width:600px;margin:0 auto;padding:16px;">
     <div style="background:linear-gradient(135deg,#4C1D95,#7C3AED);border-radius:16px;padding:16px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;">
       <div>
