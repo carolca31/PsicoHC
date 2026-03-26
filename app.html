@@ -295,6 +295,10 @@ pre{background:var(--alt);border:1px solid var(--border);border-radius:9px;paddi
 .dx-btn-cf.done{background:#16a34a;}
 .dx-mp::-webkit-scrollbar{width:4px;}
 .dx-mp::-webkit-scrollbar-thumb{background:var(--dx-brd);border-radius:2px;}
+
+#comunidad-overlay { display:none !important; }
+#comunidad-overlay.com-open { display:block !important; }
+#comunidad-panel { max-width:600px; margin:0 auto; padding:16px; }
 </style>
 </head>
 <body>
@@ -10557,10 +10561,10 @@ function openComunidad(){
   console.log("[MedHC] openComunidad hasCom="+hasCom+" plan="+JSON.stringify(userPlan));
   if(!hasCom){showPlanModal();return;}
   const overlay=document.getElementById("comunidad-overlay");
-  if(overlay){overlay.style.display="flex";overlay.style.flexDirection="column";}
+  if(overlay){overlay.classList.add("com-open");}
   comRenderLista();
 }
-function closeComunidad(){document.getElementById("comunidad-overlay").style.display="none";}
+function closeComunidad(){const o=document.getElementById("comunidad-overlay");if(o)o.classList.remove("com-open");}
 
 function updateComunidadBtn(){
   const hasCom=!!(userPlan&&(
@@ -10723,7 +10727,7 @@ init();
 </div>
 
 <!-- PROGRAMAS Y COMUNIDADES -->
-<div id="comunidad-overlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:800;overflow-y:auto;flex-direction:column;">
+<div id="comunidad-overlay" style="position:fixed;inset:0;background:var(--bg);z-index:800;overflow-y:auto;">
   <div style="max-width:600px;margin:0 auto;padding:16px;">
     <div style="background:linear-gradient(135deg,#4C1D95,#7C3AED);border-radius:16px;padding:16px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;">
       <div>
