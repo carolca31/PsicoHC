@@ -4876,12 +4876,26 @@ async function adminSetPlan(uid,email,plan,modules){
   try{
     if(plan==="modules"&&modules.length>0){
       const doc=await db.collection("users").doc(uid).get();
-      const existing=(doc.exists&&doc.data().modules)||[];
-      if(doc.exists&&doc.data().plan==="full"){return true;}
+      const existing=(doc.exists&&doc.data()&&doc.data().modules)||[];
+      const currentPlan=(doc.exists&&doc.data()&&doc.data().plan)||"free";
+      // If activating comunidad specifically, keep existing plan and just add the module
       const merged=[...new Set([...existing,...modules])];
-      await db.collection("users").doc(uid).set({plan:"modules",modules:merged,email,updatedAt:new Date().toISOString(),updatedBy:currentUser.email},{merge:true});
+      // Only upgrade plan to "modules" if they were on free
+      const newPlan=currentPlan==="full"?"full":currentPlan==="modules"?"modules":merged.length?"modules":"free";
+      await db.collection("users").doc(uid).set({
+        plan:newPlan,
+        modules:merged,
+        email,
+        updatedAt:new Date().toISOString(),
+        updatedBy:currentUser.email
+      },{merge:true});
     }else{
-      await db.collection("users").doc(uid).set({plan,modules,email,updatedAt:new Date().toISOString(),updatedBy:currentUser.email},{merge:true});
+      // Full plan or reset to free - set exactly as specified
+      await db.collection("users").doc(uid).set({
+        plan,modules,email,
+        updatedAt:new Date().toISOString(),
+        updatedBy:currentUser.email
+      },{merge:true});
     }
     return true;
   }catch(e){console.error(e);return false;}
@@ -4948,7 +4962,7 @@ function adminUserCard(u){
     </div>
     <div style="margin-top:8px;padding-top:8px;border-top:1px dashed #EDE9FE;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
       <span style="font-size:9px;font-weight:700;color:#7C3AED;text-transform:uppercase;width:100%">Programas y Comunidades</span>
-      <button onclick="adminActivate('${uid}','${em}','modules',['comunidad'])" style="padding:6px 10px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid ${mods.includes('comunidad')?'#7C3AED':'#DDD6FE'};background:${mods.includes('comunidad')?'#7C3AED':'#F5F3FF'};color:${mods.includes('comunidad')?'#fff':'#7C3AED'}">${mods.includes('comunidad')?"Activado ✓":"Activar acceso"}</button>
+      <button onclick="${mods.includes('comunidad')?'adminRemoveComunidad(\''+uid+'\',\''+em+'\')':"adminActivate('"+uid+"','"+em+"','modules',['comunidad'])"}" style="padding:6px 10px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid ${mods.includes('comunidad')?'#7C3AED':'#DDD6FE'};background:${mods.includes('comunidad')?'#7C3AED':'#F5F3FF'};color:${mods.includes('comunidad')?'#fff':'#7C3AED'}">${mods.includes('comunidad')?'Activado ✓ — Quitar':'Activar acceso'}</button>
     </div>
     <div style="margin-top:8px;padding-top:8px;border-top:1px solid #E2E8F0">
       <div style="font-size:9px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Mensaje personal</div>
@@ -10580,12 +10594,12 @@ function showGlobalBanner(message, title){
   inner.style.cssText="padding-right:28px";
   if(title){
     const t=document.createElement("div");
-    t.style.cssText="font-size:15px;font-weight:800;color:#0891B2;margin-bottom:4px;letter-spacing:-.01em";
+    t.style.cssText="font-size:19px;font-weight:800;color:#0891B2;margin-bottom:6px;letter-spacing:-.02em;line-height:1.2";
     t.textContent=title;
     inner.appendChild(t);
   }
   const m=document.createElement("div");
-  m.style.cssText="font-size:13px;font-weight:600;color:#1A3A6E;line-height:1.6";
+  m.style.cssText="font-size:14px;font-weight:600;color:#1A3A6E;line-height:1.6";
   m.innerHTML=message.split("\n").join("<br>");
   inner.appendChild(m);
   // Close button
@@ -10829,6 +10843,26 @@ async function adminExecuteBlock(uid, email, overlay){
     if(overlay)overlay.remove();
     showToastMsg("Cuenta bloqueada");
     await adminLoadUsers();
+  }catch(e){alert("Error: "+e.message);}
+}
+
+async function adminRemoveComunidad(uid, email){
+  if(!confirm("¿Quitar acceso a Programas y Comunidades para este usuario?"))return;
+  try{
+    const doc=await db.collection("users").doc(uid).get();
+    const existing=(doc.exists&&doc.data()&&doc.data().modules)||[];
+    const updated=existing.filter(m=>m!=="comunidad");
+    const newPlan=updated.length?"modules":"free";
+    await db.collection("users").doc(uid).set({
+      modules:updated,
+      plan:newPlan,
+      email,
+      updatedAt:new Date().toISOString(),
+      updatedBy:currentUser.email
+    },{merge:true});
+    showToastMsg("Acceso a Comunidades removido");
+    const q=(document.getElementById("adm-q")||{}).value||"";
+    if(q.trim())await adminDoSearch();else await adminLoadUsers();
   }catch(e){alert("Error: "+e.message);}
 }
 
