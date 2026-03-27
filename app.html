@@ -10571,18 +10571,39 @@ async function showLoginMessages(){
 }
 
 function showGlobalBanner(message, title){
-  // Remove existing banner if any
   const existing=document.getElementById("global-banner");
   if(existing)existing.remove();
-  // Find the main content area to prepend banner
-  const main=document.getElementById("main")||document.getElementById("content")||document.body;
   const banner=document.createElement("div");
   banner.id="global-banner";
-  banner.style.cssText="background:linear-gradient(135deg,#0F172A,#1A3A6E);color:#fff;padding:10px 16px;font-size:12px;line-height:1.5;position:relative;flex-shrink:0;";
-  banner.innerHTML=(title?"<span style='font-weight:800;margin-right:6px'>"+title+"</span>":"")+message.split("\n").join(" ");
-  // Insert at top of app content
-  const appEl=document.getElementById("app");
-  if(appEl){appEl.insertBefore(banner,appEl.firstChild);}
+  banner.style.cssText="margin:16px;border-radius:14px;background:#fff;border:2px solid #BAE6FD;box-shadow:0 2px 16px rgba(8,145,178,.1);padding:16px 20px;position:relative;";
+  const inner=document.createElement("div");
+  inner.style.cssText="padding-right:28px";
+  if(title){
+    const t=document.createElement("div");
+    t.style.cssText="font-size:15px;font-weight:800;color:#0891B2;margin-bottom:4px;letter-spacing:-.01em";
+    t.textContent=title;
+    inner.appendChild(t);
+  }
+  const m=document.createElement("div");
+  m.style.cssText="font-size:13px;font-weight:600;color:#1A3A6E;line-height:1.6";
+  m.innerHTML=message.split("\n").join("<br>");
+  inner.appendChild(m);
+  // Close button
+  const x=document.createElement("button");
+  x.innerHTML="&times;";
+  x.style.cssText="position:absolute;top:10px;right:12px;background:none;border:none;font-size:18px;color:#94A3B8;cursor:pointer;line-height:1;padding:0";
+  x.onclick=()=>banner.remove();
+  banner.appendChild(inner);
+  banner.appendChild(x);
+  // Insert at top of main content (right panel), not sidebar
+  const main=document.getElementById("main")||document.getElementById("welcome")||document.getElementById("content");
+  if(main){
+    main.parentNode.insertBefore(banner,main);
+  } else {
+    // Fallback: insert after sidebar
+    const sidebar=document.getElementById("sidebar");
+    if(sidebar&&sidebar.nextSibling){sidebar.parentNode.insertBefore(banner,sidebar.nextSibling);}
+  }
 }
 
 function showMessageModal(type,message,title){
