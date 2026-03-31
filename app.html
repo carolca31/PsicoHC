@@ -1146,6 +1146,8 @@ async function deletePatient(id){
   renderList();
 }
 function selectP(id){
+  // Si cambiamos de historia, limpiar diagnósticos DSM marcados
+  if(selectedId && selectedId !== id) resetDxState();
   selectedId=id;
   const p=getP();if(!p)return;
   // Parche: asegurar campos de pareja en registros antiguos
@@ -5611,6 +5613,8 @@ function loginWithGoogle(){
 function logOut(){
   if(!auth)return;
   window._intentionalSignOut=true;
+  // Limpiar estado clínico antes de cerrar sesión
+  resetDxState();
   auth.signOut().then(function(){
     currentUser=null;userPlan={plan:"free",modules:[],historyCount:0};patients=[];selectedId=null;
     // Ocultar todo y regresar al landing/login
@@ -6454,6 +6458,7 @@ function showPlanModal(){
 // ── Init ──────────────────────────────────────────────────────────────────────
 function startAppLocal(){
   // Modo sin internet — usa localStorage sin autenticación
+  resetDxState();
   document.getElementById("login-screen").style.display="none";
   document.getElementById("loading").style.display="none";
   document.getElementById("app").style.display="flex";
@@ -6485,7 +6490,8 @@ async function init(){
   // Escuchar cambios de autenticación
   auth.onAuthStateChanged(async function(user){
     if(user){
-      // Usuario autenticado — cargar app
+      // Usuario autenticado — limpiar estado previo y cargar app
+      resetDxState();
       currentUser=user;
       document.getElementById("login-screen").style.display="none";
       document.getElementById("app").style.display="flex";
@@ -6627,6 +6633,12 @@ const DX_ML={p:'Presente',par:'Parcial',a:'Ausente',oc:'Ocasional',fr:'Frecuente
 let dxSeg='adulto', dxFl='all';
 const DX_ST={};
 function dxGst(id){if(!DX_ST[id])DX_ST[id]={marks:{},notes:{},subs:{}};return DX_ST[id];}
+
+// ── Limpia TODOS los diagnósticos DSM marcados en memoria ─────────────────────
+function resetDxState(){
+  // Borrar todas las claves de DX_ST sin perder la referencia al objeto
+  Object.keys(DX_ST).forEach(k=>delete DX_ST[k]);
+}
 function dxSa(a){document.documentElement.style.setProperty('--dx-a',a);}
 dxSa(DX_AC[dxSeg]);
 
