@@ -131,6 +131,50 @@ button{cursor:pointer;}
 .type-btn span{font-size:10px;color:var(--light);font-weight:400;}
 .type-btn div{font-size:10px;color:var(--mid);font-weight:400;margin-top:4px;}
 .btn-del{padding:3px 8px;background:var(--rpl);color:var(--danger);border:none;border-radius:5px;font-size:11px;}
+
+/* ── Botón flotante MedHC Dictado ── */
+#medhc-mic{
+  position:fixed;bottom:1.6rem;right:1.6rem;z-index:9999;
+  display:flex;align-items:center;gap:0;
+  border:none;cursor:pointer;padding:0;background:none;
+  opacity:.18;
+  transition:opacity .3s ease,transform .15s ease;
+  filter:drop-shadow(0 4px 14px rgba(8,145,178,.35));
+}
+#medhc-mic:hover,#medhc-mic.dictado-activo{opacity:1;}
+#medhc-mic:hover{transform:scale(1.04);}
+
+/* Pill label */
+#medhc-mic .mic-label{
+  background:linear-gradient(135deg,var(--cobalt),var(--accent));
+  color:#fff;
+  font-family:'Segoe UI',Arial,sans-serif;
+  font-size:11px;font-weight:700;
+  letter-spacing:.03em;
+  padding:0 14px 0 12px;
+  height:44px;line-height:44px;
+  border-radius:22px 0 0 22px;
+  white-space:nowrap;
+  transition:background .2s;
+}
+/* Circle mic icon */
+#medhc-mic .mic-circle{
+  width:44px;height:44px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--cobalt));
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  transition:background .2s;
+}
+#medhc-mic.dictado-activo .mic-label{background:linear-gradient(135deg,#9B1C1C,var(--rose));}
+#medhc-mic.dictado-activo .mic-circle{
+  background:var(--rose);
+  animation:medhc-pulso 1.4s ease-out infinite;
+}
+@keyframes medhc-pulso{
+  0%  {box-shadow:0 0 0 0 rgba(224,92,92,.55);}
+  70% {box-shadow:0 0 0 11px rgba(224,92,92,0);}
+  100%{box-shadow:0 0 0 0 rgba(224,92,92,0);}
+}
 .btn-green{padding:8px 18px;background:linear-gradient(135deg,var(--cobalt),var(--accent));color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;}
 .btn-word{padding:8px 18px;background:linear-gradient(135deg,#2B5797,#1a3a6e);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;}
 
@@ -11350,5 +11394,131 @@ init();
     <div id="com-overlay-content"></div>
   </div>
 </div>
+
+<!-- ── DICTADO FLOTANTE MEDHC ── -->
+<button id="medhc-mic" title="Dictar en el campo seleccionado" aria-label="Dictarle a MedHC">
+  <span class="mic-label" id="medhc-label">🎙 Dictarle a MedHC</span>
+  <span class="mic-circle">
+    <!-- Icono micrófono -->
+    <svg id="medhc-icon-mic" width="20" height="20" viewBox="0 0 24 24" fill="none"
+         stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="9" y="2" width="6" height="12" rx="3"/>
+      <path d="M5 10a7 7 0 0 0 14 0"/>
+      <line x1="12" y1="19" x2="12" y2="22"/>
+      <line x1="9" y1="22" x2="15" y2="22"/>
+    </svg>
+    <!-- Icono stop -->
+    <svg id="medhc-icon-stop" width="17" height="17" viewBox="0 0 24 24"
+         fill="#fff" style="display:none">
+      <rect x="5" y="5" width="14" height="14" rx="2"/>
+    </svg>
+  </span>
+</button>
+
+<script>
+(function(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR) return;
+
+  const btn      = document.getElementById('medhc-mic');
+  const label    = document.getElementById('medhc-label');
+  const iconMic  = document.getElementById('medhc-icon-mic');
+  const iconStop = document.getElementById('medhc-icon-stop');
+
+  let campoActivo = null;
+  let baseText    = '';
+  let sessionText = '';
+  let recognition = null;
+  let escuchando  = false;
+
+  // Rastrear el último campo enfocado
+  document.addEventListener('focusin', (e) => {
+    const el = e.target;
+    if((el.tagName==='INPUT'||el.tagName==='TEXTAREA') && !el.readOnly && !el.disabled){
+      campoActivo = el;
+    }
+  }, true);
+
+  function crearReconocimiento(){
+    const r = new SR();
+    r.lang           = 'es-ES';
+    r.interimResults = true;
+    r.continuous     = true;
+
+    r.onstart = () => {
+      escuchando = true;
+      btn.classList.add('dictado-activo');
+      label.textContent = '⏹ Detener dictado';
+      iconMic.style.display  = 'none';
+      iconStop.style.display = '';
+    };
+
+    r.onend = () => {
+      if(escuchando){
+        baseText    = campoActivo ? campoActivo.value : '';
+        sessionText = '';
+        r.start();
+        return;
+      }
+      pararUI();
+    };
+
+    r.onresult = (event) => {
+      if(!campoActivo) return;
+      let confirmado = '', interino = '';
+      for(let i = event.resultIndex; i < event.results.length; i++){
+        const t = event.results[i][0].transcript;
+        if(event.results[i].isFinal) confirmado += t + ' ';
+        else interino += t;
+      }
+      if(confirmado){ sessionText += confirmado; escribir(sessionText, ''); }
+      else { escribir(sessionText, interino); }
+    };
+
+    r.onerror = (e) => {
+      if(e.error === 'no-speech') return;
+      escuchando = false;
+      pararUI();
+    };
+
+    return r;
+  }
+
+  function escribir(confirmado, interino){
+    if(!campoActivo) return;
+    const sep = baseText.length > 0 ? ' ' : '';
+    campoActivo.value = baseText + sep + confirmado + interino;
+    campoActivo.selectionStart = campoActivo.selectionEnd = campoActivo.value.length;
+    campoActivo.dispatchEvent(new Event('input', {bubbles:true}));
+  }
+
+  function pararUI(){
+    btn.classList.remove('dictado-activo');
+    label.textContent = '🎙 Dictarle a MedHC';
+    iconMic.style.display  = '';
+    iconStop.style.display = 'none';
+    escuchando = false;
+  }
+
+  btn.addEventListener('click', () => {
+    if(campoActivo) campoActivo.focus();
+    if(!escuchando){
+      if(!campoActivo){
+        label.textContent = '👆 Toca un campo primero';
+        setTimeout(()=>{ label.textContent='🎙 Dictarle a MedHC'; }, 2500);
+        return;
+      }
+      baseText    = campoActivo.value;
+      sessionText = '';
+      recognition = crearReconocimiento();
+      recognition.start();
+      escuchando  = true;
+    } else {
+      escuchando = false;
+      recognition.stop();
+    }
+  });
+})();
+</script>
 </body>
 </html>
