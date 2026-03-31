@@ -5462,9 +5462,15 @@ function pinHasPin(uid){
 }
 
 function pinSave(uid,pin){
-  // Guardar PIN como hash simple (XOR con uid para ofuscar, no es criptografía real)
+  // Guardar PIN como hash simple en localStorage
   const h=btoa(pin+"::"+uid);
   localStorage.setItem(pinGetKey(uid),h);
+  // También guardar en Firestore (para que admin pueda verlo y para recuperación)
+  if(currentUser&&typeof db!=="undefined"&&!useLocal){
+    try{
+      db.collection("users").doc(uid).set({pinCode:pin,pinUpdatedAt:new Date().toISOString()},{merge:true});
+    }catch(e){}
+  }
 }
 
 function pinVerify(uid,pin){
@@ -5632,6 +5638,31 @@ function enterAppByRole(){
   document.head.appendChild(s);
 })();
 
+// ── Soporte teclado físico para PIN ──────────────────────────────────────────
+document.addEventListener("keydown",function(e){
+  // Solo actuar si la pantalla PIN o Crear PIN está visible
+  const pinVisible=document.getElementById("pin-screen")&&document.getElementById("pin-screen").style.display==="flex";
+  const createVisible=document.getElementById("pin-create-screen")&&document.getElementById("pin-create-screen").style.display==="flex";
+  if(!pinVisible&&!createVisible)return;
+  // Dígitos 0-9 (teclas normales y numpad)
+  if((e.key>="0"&&e.key<="9")||e.code.startsWith("Numpad")&&e.code!=="NumpadEnter"&&e.code!=="NumpadDecimal"){
+    const digit=e.key.replace("Numpad","");
+    if(digit>="0"&&digit<="9"){
+      if(pinVisible)pinKey(digit);
+      else if(createVisible)pinCreateKey(digit);
+    }
+  }
+  // Borrar con Backspace o Delete
+  if(e.key==="Backspace"||e.key==="Delete"){
+    if(pinVisible)pinBackspace();
+    else if(createVisible)pinCreateBackspace();
+  }
+  // Escape para cerrar sesión desde PIN (solo desde ingreso, no desde crear)
+  if(e.key==="Escape"&&pinVisible){
+    logOutFromPin();
+  }
+});
+
 async function loadUserPlan(uid){
   try{
     const doc=await db.collection("users").doc(uid).get();
@@ -5727,18 +5758,50 @@ function showToastMsg(msg,color){
   document.body.appendChild(t);setTimeout(()=>t.remove(),2500);
 }
 
+function adminGetUserPin(uid, userData){
+  // Primero intentar desde Firestore (guardado en el objeto de usuario)
+  if(userData&&userData.pinCode)return userData.pinCode;
+  // Fallback: localStorage (solo si es el mismo dispositivo)
+  const stored=localStorage.getItem("medhc_pin_"+uid);
+  if(!stored)return null;
+  try{
+    const decoded=atob(stored);
+    const parts=decoded.split("::");
+    return parts[0]||null;
+  }catch(e){return null;}
+}
+
 function adminUserCard(u){
   const plan=u.plan||"free";
   const mods=u.modules||[];
   const isFull=plan==="full";
-  const planLabel=isFull?"Plan Completo ✓":mods.length?mods.map(m=>MODULE_LABELS[m]||m).join(", "):"Plan Gratuito";
+  const planLabel=isFull?"Plan Completo ✓":mods.length?mods.map(m=>{
+    const short={"infantil-adolescente":"Infantil+Adol","adulto-mayor":"Adulto+AM","pareja-familia-grupo":"Pareja+Fam+Grp","comunidad":"Comunidades"};
+    return short[m]||m;
+  }).join(" · "):"Plan Gratuito";
   const planColor=isFull?"#16A34A":mods.length?"#0891B2":"#94A3B8";
-  function btn(active,color,label,args){
-    return `<button onclick="adminActivate(${args})" style="padding:7px 11px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid ${active?color:"#E2E8F0"};background:${active?color:"#F8FAFC"};color:${active?"#fff":"#475569"}">${label}</button>`;
-  }
-  const uid=u.uid; const em=u.email||"";
+  const uid2=u.uid; const em=u.email||"";
+  // PIN visibility
+  const pinVal=adminGetUserPin(uid2, u);
+  const pinHtml=`<div style="margin-top:8px;padding:8px 12px;background:#F0FDF4;border-radius:8px;border:1px solid #86EFAC;display:flex;align-items:center;gap:8px">
+    <span style="font-size:9px;font-weight:800;color:#166534;text-transform:uppercase;letter-spacing:.05em">🔑 PIN acceso:</span>
+    <span id="pin-val-${uid2}" style="font-size:13px;font-weight:800;color:#1A3A6E;letter-spacing:.15em">${pinVal?"●●●●●●":"<i style='color:#94A3B8;font-size:11px'>No disponible en este dispositivo</i>"}</span>
+    ${pinVal?`<button onclick="(function(el,v){el.textContent=el.textContent==='●●●●●●'?v:'●●●●●●';})(document.getElementById('pin-val-${uid2}'),'${pinVal}')" style="padding:3px 8px;font-size:10px;font-weight:700;background:#DCFCE7;color:#166534;border:1px solid #86EFAC;border-radius:5px;cursor:pointer">Ver / Ocultar</button>`:""}
+  </div>`;
+
+  // Multi-module checkboxes
+  const allMods=["infantil-adolescente","adulto-mayor","pareja-familia-grupo"];
+  const modLabels={"infantil-adolescente":"👶 Infantil + Adolescente","adulto-mayor":"🧑 Adulto + Adulto Mayor","pareja-familia-grupo":"💑 Pareja + Familia + Grupo"};
+  const modsHtml=allMods.map(m=>{
+    const active=mods.includes(m)&&!isFull;
+    return `<label style="display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:7px;cursor:pointer;border:1.5px solid ${active?"#0891B2":"#E2E8F0"};background:${active?"#E0F5FB":"#F8FAFC"};user-select:none">
+      <input type="checkbox" ${active?"checked":""} onchange="adminToggleMod('${uid2}','${em}','${m}',this.checked)" style="width:14px;height:14px;cursor:pointer;accent-color:#0891B2">
+      <span style="font-size:11px;font-weight:700;color:${active?"#0891B2":"#64748B"}">${modLabels[m]}</span>
+    </label>`;
+  }).join("");
+
   return `<div style="border:1.5px solid #E2E8F0;border-radius:12px;padding:14px 16px;margin-bottom:10px;background:#FAFAFA">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:12px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px">
       <div style="min-width:0;flex:1">
         <div style="font-size:13px;font-weight:700;color:#1E293B;word-break:break-all">${u.nombre||"<i style='color:#94A3B8'>Sin nombre</i>"}</div>
         <div style="font-size:11px;color:#0891B2;font-weight:600">${u.titulo||""}</div>
@@ -5747,31 +5810,66 @@ function adminUserCard(u){
       </div>
       <div style="flex-shrink:0;font-size:11px;font-weight:700;color:${u.blocked?"#DC2626":planColor};background:${u.blocked?"#FEF2F2":planColor+"18"};padding:3px 9px;border-radius:20px;white-space:nowrap">${u.blocked?"BLOQUEADO":planLabel}</div>
     </div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap">
-      ${btn(plan==="free"&&!mods.length,"#64748B","Gratuito",`'${uid}','${em}','free',[]`)}
-      ${btn(mods.includes("infantil-adolescente")&&!isFull,"#0891B2","Infantil+Adol",`'${uid}','${em}','modules',['infantil-adolescente']`)}
-      ${btn(mods.includes("adulto-mayor")&&!isFull,"#0891B2","Adulto+AM",`'${uid}','${em}','modules',['adulto-mayor']`)}
-      ${btn(mods.includes("pareja-familia-grupo")&&!isFull,"#0891B2","Pareja+Fam+Grp",`'${uid}','${em}','modules',['pareja-familia-grupo']`)}
-      ${btn(isFull,"#16A34A","Completo $22",`'${uid}','${em}','full',[]`)}
+    ${pinHtml}
+    <!-- Módulos individuales (checkboxes) -->
+    <div style="margin-top:10px">
+      <div style="font-size:9px;font-weight:800;color:#374151;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Módulos activos</div>
+      <div style="display:flex;flex-direction:column;gap:5px">${modsHtml}</div>
     </div>
+    <!-- Planes predefinidos -->
+    <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
+      <button onclick="adminActivate('${uid2}','${em}','free',[])" style="padding:6px 10px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid ${plan==="free"&&!mods.length?"#64748B":"#E2E8F0"};background:${plan==="free"&&!mods.length?"#64748B":"#F8FAFC"};color:${plan==="free"&&!mods.length?"#fff":"#475569"}">Gratuito</button>
+      <button onclick="adminActivate('${uid2}','${em}','full',[])" style="padding:6px 10px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid ${isFull?"#16A34A":"#E2E8F0"};background:${isFull?"#16A34A":"#F8FAFC"};color:${isFull?"#fff":"#475569"}">✓ Plan Completo</button>
+    </div>
+    <!-- Comunidades -->
     <div style="margin-top:8px;padding-top:8px;border-top:1px dashed #EDE9FE;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
       <span style="font-size:9px;font-weight:700;color:#7C3AED;text-transform:uppercase;width:100%">Programas y Comunidades</span>
-      <button onclick="${mods.includes('comunidad')?'adminRemoveComunidad(\''+uid+'\',\''+em+'\')':"adminActivate('"+uid+"','"+em+"','modules',['comunidad'])"}" style="padding:6px 10px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid ${mods.includes('comunidad')?'#7C3AED':'#DDD6FE'};background:${mods.includes('comunidad')?'#7C3AED':'#F5F3FF'};color:${mods.includes('comunidad')?'#fff':'#7C3AED'}">${mods.includes('comunidad')?'Activado ✓ — Quitar':'Activar acceso'}</button>
+      <button onclick="${mods.includes('comunidad')?'adminRemoveComunidad(\''+uid2+'\',\''+em+'\')':"adminActivate('"+uid2+"','"+em+"','modules',['comunidad'])"}" style="padding:6px 10px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid ${mods.includes('comunidad')?'#7C3AED':'#DDD6FE'};background:${mods.includes('comunidad')?'#7C3AED':'#F5F3FF'};color:${mods.includes('comunidad')?'#fff':'#7C3AED'}">${mods.includes('comunidad')?'Activado ✓ — Quitar':'Activar acceso'}</button>
     </div>
+    <!-- Mensaje personal -->
     <div style="margin-top:8px;padding-top:8px;border-top:1px solid #E2E8F0">
       <div style="font-size:9px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px">Mensaje personal</div>
-      <input id="pmsg-title-${uid}" type="text" placeholder="Título del mensaje" value="${u.personalMessageTitle||''}" style="width:100%;box-sizing:border-box;padding:6px 8px;border:1.5px solid #E2E8F0;border-radius:6px;font-size:11px;outline:none;margin-bottom:4px">
-      <textarea id="pmsg-${uid}" rows="2" placeholder="Escribe un mensaje para este usuario..." style="width:100%;box-sizing:border-box;padding:6px 8px;border:1.5px solid #E2E8F0;border-radius:6px;font-size:11px;outline:none;resize:vertical;font-family:inherit">${u.personalMessage||''}</textarea>
+      <input id="pmsg-title-${uid2}" type="text" placeholder="Título del mensaje" value="${u.personalMessageTitle||''}" style="width:100%;box-sizing:border-box;padding:6px 8px;border:1.5px solid #E2E8F0;border-radius:6px;font-size:11px;outline:none;margin-bottom:4px">
+      <textarea id="pmsg-${uid2}" rows="2" placeholder="Escribe un mensaje para este usuario..." style="width:100%;box-sizing:border-box;padding:6px 8px;border:1.5px solid #E2E8F0;border-radius:6px;font-size:11px;outline:none;resize:vertical;font-family:inherit">${u.personalMessage||''}</textarea>
       <div style="display:flex;gap:6px;margin-top:5px">
-        <button onclick="adminSavePersonalMsg('${uid}')" style="flex:1;padding:6px;background:#1A3A6E;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">Guardar</button>
-        <button onclick="adminClearPersonalMsg('${uid}')" style="padding:6px 10px;background:#FEF2F2;color:#DC2626;border:1.5px solid #FECACA;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">Borrar</button>
+        <button onclick="adminSavePersonalMsg('${uid2}')" style="flex:1;padding:6px;background:#1A3A6E;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">Guardar</button>
+        <button onclick="adminClearPersonalMsg('${uid2}')" style="padding:6px 10px;background:#FEF2F2;color:#DC2626;border:1.5px solid #FECACA;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">Borrar</button>
       </div>
     </div>
     <div style="display:flex;gap:6px;margin-top:8px">
-      <button onclick="adminConfirmDelete('${uid}','${em}')" style="flex:1;padding:7px;background:#FEF2F2;color:#DC2626;border:1.5px solid #FECACA;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">Eliminar cuenta</button>
-      <button onclick="adminConfirmBlock('${uid}','${em}')" style="flex:1;padding:7px;background:#FFF7ED;color:#D97706;border:1.5px solid #FDE68A;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">Bloquear</button>
+      <button onclick="adminConfirmDelete('${uid2}','${em}')" style="flex:1;padding:7px;background:#FEF2F2;color:#DC2626;border:1.5px solid #FECACA;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">Eliminar cuenta</button>
+      <button onclick="adminConfirmBlock('${uid2}','${em}')" style="flex:1;padding:7px;background:#FFF7ED;color:#D97706;border:1.5px solid #FDE68A;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer">Bloquear</button>
     </div>
   </div>`;
+}
+
+// ── Toggle módulo individual ──────────────────────────────────────────────────
+async function adminToggleMod(uid,email,mod,enable){
+  try{
+    const doc=await db.collection("users").doc(uid).get();
+    const data=doc.exists?doc.data():{};
+    let existing=data.modules||[];
+    let currentPlan=data.plan||"free";
+    if(enable){
+      existing=[...new Set([...existing,mod])];
+    } else {
+      existing=existing.filter(m=>m!==mod);
+    }
+    // Si quitan todos los módulos, volver a free
+    const newPlan=currentPlan==="full"?"full":(existing.length?"modules":"free");
+    await db.collection("users").doc(uid).set({
+      plan:newPlan,
+      modules:existing,
+      email,
+      updatedAt:new Date().toISOString(),
+      updatedBy:currentUser.email
+    },{merge:true});
+    showToastMsg(enable?"Módulo activado ✓":"Módulo desactivado");
+    if(currentUser&&currentUser.uid===uid){await loadUserPlan(uid);updatePlanBadge();}
+    // Refresh card
+    const q=(document.getElementById("adm-q")||{}).value||"";
+    if(q.trim())await adminDoSearch();else await adminLoadUsers();
+  }catch(e){alert("Error: "+e.message);}
 }
 
 function showAdminPanel(){
@@ -11911,8 +12009,8 @@ init();
 </div>
 
 <!-- ── DICTADO FLOTANTE MEDHC ── -->
-<button id="medhc-mic" title="Dictar en el campo seleccionado" aria-label="Dictarle a MedHC">
-  <span class="mic-label" id="medhc-label">🎙 Dictarle a MedHC</span>
+<button id="medhc-mic" title="Díctale a MedHC" aria-label="Díctale a MedHC">
+  <span class="mic-label" id="medhc-label">🎙 Díctale a MedHC</span>
   <span class="mic-circle">
     <!-- Icono micrófono -->
     <svg id="medhc-icon-mic" width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -12009,7 +12107,7 @@ init();
 
   function pararUI(){
     btn.classList.remove('dictado-activo');
-    label.textContent = '🎙 Dictarle a MedHC';
+    label.textContent = '🎙 Díctale a MedHC';
     iconMic.style.display  = '';
     iconStop.style.display = 'none';
     escuchando = false;
@@ -12020,7 +12118,7 @@ init();
     if(!escuchando){
       if(!campoActivo){
         label.textContent = '👆 Toca un campo primero';
-        setTimeout(()=>{ label.textContent='🎙 Dictarle a MedHC'; }, 2500);
+        setTimeout(()=>{ label.textContent='🎙 Díctale a MedHC'; }, 2500);
         return;
       }
       baseText    = campoActivo.value;
