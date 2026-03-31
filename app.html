@@ -1559,7 +1559,18 @@ function renderTab(){
         )+
         fld("Dirección",ta("direccion",p.direccion,2))+
         fld("Teléfono / Contacto",inp("repTelefono",p.repTelefono))
-      );
+      )+
+      (isAdulto()?sec(2,"Motivo de Consulta",
+        '<div style="margin-bottom:10px;padding:9px 13px;background:var(--cobalt-light);border-radius:9px;font-size:11px;color:var(--cobalt);font-weight:700">'
+        +'Registra el motivo de consulta con las palabras del propio paciente. Aparecerá en el informe clínico.'
+        +'</div>'+
+        fld("Motivo de consulta",ta("motivoConsultaAdulto",p.motivoConsultaAdulto,5,"¿Qué lo trae a consulta? ¿Qué está pasando? Escribe con las palabras del propio paciente."),"Escrito con las palabras del paciente.")+
+        g2(
+          fld("Fuente de información",sel("fuenteInfo",p.fuenteInfo,["Paciente (autopresentado)","Derivado por médico","Derivado por familiar","Derivado por otro profesional","Referido por conocido","Otro"]))+
+          fld("Confiabilidad",sel("confiabilidadInfo",p.confiabilidadInfo,["Alta — relato coherente y detallado","Media — algunos datos imprecisos","Baja — relato vago o contradictorio"]))
+        )+
+        fld("Derivado/a por",inp("derivadoPor",p.derivadoPor,"text","Nombre o institución que derivó (opcional)"))
+      ):"");
     } else if(isGrupal()){
       el.innerHTML=tipoBadge+
       sec(1,"Identificación del Grupo",
@@ -4608,6 +4619,7 @@ function bodyInfantil(p,sec,row,rowList,para,esc,escs){
   b+=sec(1,'Identificación');
   b+=row('Nombre',p.nombre);b+=row('Fecha de nacimiento',p.fechaNac?fmtDate(p.fechaNac):null);
   b+=row('Edad',p.edad?p.edad+' años':null);b+=row('Sexo',p.sexo);b+=row('Cédula',p.cedula);
+  b+=row('Tipo de historia',p.tipoHistoria);
   b+=row('Grado escolar',p.gradoEscolar);b+=row('Institución',p.institucion);
   b+=row('Representante',p.repNombre?(p.repNombre+(p.repParentesco?' ('+p.repParentesco+')':'')):null);
   b+=row('Teléfono representante',p.repTelefono);b+=row('Dirección',p.direccion);
@@ -4618,6 +4630,7 @@ function bodyInfantil(p,sec,row,rowList,para,esc,escs){
   b+=sec(3,'Antecedentes Perinatales y de Desarrollo');
   b+=row('Embarazo',p.embarazoPlaneado);b+=row('Salud materna',p.saludMadre);
   b+=rowList('Complicaciones embarazo',p.complicacionesEmbarazo);
+  b+=row('Otras complicaciones embarazo',p.otrasCompEmbarazo);
   b+=row('Tipo de nacimiento',p.tipoNacimiento);b+=row('Tipo de parto',p.tipoParto);
   b+=row('Semanas gestación',p.semanasEmbarazo);
   b+=row('Peso al nacer',p.pesoNacer);b+=row('Talla al nacer',p.tallaNacer);
@@ -4633,15 +4646,24 @@ function bodyInfantil(p,sec,row,rowList,para,esc,escs){
 
   b+=sec(4,'Área Emocional y Conductual');
   b+=rowList('Emociones frecuentes',p.emocionesFrecuentes);
-  b+=rowList('Miedos',p.miedosPersistentes);
+  b+=rowList('Miedos',p.miedosPersistentes);b+=row('Otros miedos',p.otrosMiedos);
   b+=rowList('Síntomas de ansiedad',p.sintomasAnsiedad);
   b+=para(p.pensamientosNegativos&&'Pensamientos negativos: '+p.pensamientosNegativos);
   b+=rowList('Conductas en casa',p.conductasEnCasa);
   b+=row('Reacción ante frustración',p.reaccionFrustracion);
+  b+=row('Contexto de conductas',p.contextoConductas);
+  b+=row('Conductas referidas',p.referidoConducta);
+  b+=row('Búsqueda de estímulos',p.busquedaEstimulos);
+  b+=row('Sensibilidad a ruidos',p.sensibilidadRuidos);
+  b+=row('Sensibilidad a texturas',p.sensibilidadTexturas);
+  b+=row('Sensibilidad a luces',p.sensibilidadLuces);
 
   b+=sec(5,'Área Escolar y Social');
-  b+=row('Asistencia escolar',p.asistenciaEscolar);b+=row('Bullying',p.bullying&&p.bullying!=='No'?p.bullying:null);
-  b+=row('Relación con compañeros',p.relacionCompaneros);b+=row('Relación con docentes',p.relacionDocentes);
+  b+=row('Asistencia escolar',p.asistenciaEscolar);
+  b+=row('Bullying',p.bullying&&p.bullying!=='No'?p.bullying:null);
+  b+=row('Relación con compañeros',p.relacionCompaneros);
+  b+=row('Nombres de vínculos positivos',p.nombresVinculos);
+  b+=row('Relación con docentes',p.relacionDocentes);
   b+=rowList('Comportamiento en clase',p.comportamientoClase);
   b+=rowList('Dificultades académicas',p.dificultadesAcademicas);
 
@@ -4670,12 +4692,20 @@ function bodyInfantil(p,sec,row,rowList,para,esc,escs){
   b+=row('Enfermedades médicas',p.diagnosticoPrevioMed);
   b+=rowList('Intervenciones previas',p.intervencionesPrevias);
 
-  b+=sec(9,'Observación Clínica');
+  b+=sec(9,'Evaluación de Riesgo');
+  b+=row('Nivel de riesgo',p.nivelRiesgoGlobal);
+  b+=para(p.notasRiesgo);
+
+  b+=sec(10,'Observación Clínica');
   b+=row('Actitud',p.observacionActitud);b+=row('Interacción',p.observacionInteraccion);
   b+=row('Lenguaje',p.observacionLenguaje);b+=row('Juego',p.observacionJuego);
   b+=row('Estado emocional',p.observacionEstadoEmocional);
   b+=row('Insight',p.observacionInsight);b+=row('Disposición terapéutica',p.observacionDisposicion);
   b+=para(p.observacionNotas);
+
+  b+=sec(11,'Hipótesis y Diagnóstico');
+  b+=para(p.hipotesisClinica&&'Hipótesis: '+p.hipotesisClinica);
+  b+=rowList('Diagnóstico',p.diagnostico);b+=para(p.impresionDiagnostica);
   return b;
 }
 
@@ -4683,41 +4713,15 @@ function bodyAdulto(p,sec,row,rowList,para,esc,escs){
   let b='';
   b+=sec(1,'Identificación');
   b+=row('Nombre',p.nombre);b+=row('Fecha de nacimiento',p.fechaNac?fmtDate(p.fechaNac):null);
-  b+=row('Edad',p.edad?p.edad+' años':null);b+=row('Sexo',p.sexo);
+  b+=row('Edad',p.edad?p.edad+' años':null);b+=row('Cédula',p.cedula);b+=row('Sexo',p.sexo);
   b+=row('Estado civil',p.estadoCivil);b+=row('Nivel educativo',p.nivelEducativo);
-  b+=row('Ocupación',p.ocupacion);b+=row('Teléfono',p.telefono);b+=row('Dirección',p.direccion);
+  b+=row('Ocupación',p.ocupacion);b+=row('Teléfono',p.telefono||p.repTelefono);b+=row('Dirección',p.direccion);
 
   b+=sec(2,'Motivo de Consulta');b+=para(p.motivoConsultaAdulto||p.motivoConsulta);
   b+=row('Fuente de información',p.fuenteInfo);b+=row('Confiabilidad',p.confiabilidadInfo);
+  b+=row('Derivado/a por',p.derivadoPor);
 
-  b+=sec(3,'Historia de Vida');
-  b+=para(p.historiaInfancia&&'Infancia: '+p.historiaInfancia);
-  b+=para(p.historiaAdolescencia&&'Adolescencia: '+p.historiaAdolescencia);
-  b+=rowList('Eventos vitales significativos',p.eventosVitales);
-  b+=para(p.otrosEventosVitales);
-
-  b+=sec(4,'Contexto Familiar y Social');
-  b+=row('Composición familiar',p.composicionFamiliarA);
-  b+=row('Calidad de vínculos',p.calidadVinculosA);
-  b+=para(p.dinamicaFamiliarA);
-  b+=rowList('Antecedentes familiares de salud mental',p.ahfSaludMental);
-  b+=row('Red de apoyo',p.redApoyo);b+=row('Calidad de relaciones',p.calidadRelaciones);
-  b+=para(p.conflictosInterpersonales&&'Conflictos interpersonales: '+p.conflictosInterpersonales);
-
-  b+=sec(5,'Área de Pareja y Sexualidad');
-  b+=row('Estado de pareja',p.estadoPareja);b+=row('Orientación sexual',p.orientacionSexual);
-  b+=row('Satisfacción sexual',p.satisfaccionSexual);
-  b+=row('Calidad de la relación',p.calidadRelacionPareja);
-  b+=para(p.historiaRelaciones&&'Historia relacional: '+p.historiaRelaciones);
-  b+=para(p.dificultadesPareja&&'Dificultades: '+p.dificultadesPareja);
-
-  b+=sec(6,'Área Laboral y Funcional');
-  b+=row('Situación laboral',p.situacionLaboral);b+=row('Ocupación actual',p.ocupacionActual);
-  b+=row('Satisfacción laboral',p.satisfaccionLaboral);
-  b+=para(p.problemasLaborales&&'Problemas laborales: '+p.problemasLaborales);
-  b+=row('Autonomía en AVDB',p.autonomiaAVDB);b+=row('Rutina diaria',p.rutinaOrganizacion);
-
-  b+=sec(7,'Área Emocional y Síntomas');
+  b+=sec(3,'Problema Actual y Síntomas');
   b+=para(p.problemaActual||p.descripcionProblema);
   b+=row('Inicio de los síntomas',p.inicioProblemaTiempo);
   b+=row('Intensidad',p.intensidadSintomas);b+=row('Frecuencia',p.frecuenciaSintomas);
@@ -4725,29 +4729,94 @@ function bodyAdulto(p,sec,row,rowList,para,esc,escs){
   b+=rowList('Síntomas físicos',p.sintomasFisicos);
   b+=rowList('Síntomas cognitivos',p.sintomasCognitivos);
   b+=rowList('Síntomas conductuales',p.sintomasConductuales);
+  b+=rowList('Síntomas de ansiedad',p.sintomasAnsiedadA);
+  b+=row('Estado de ánimo predominante',p.estadoAnimoPredominante);
+  b+=row('Anhedonia',p.anhedonia);b+=row('Rumiación',p.rumiacion);
+  b+=rowList('Distorsiones cognitivas',p.distorsionesCognitivas);
+  b+=rowList('Emociones frecuentes',p.emocionesFrecuentesA);
+  b+=row('Regulación emocional',p.regulacionEmocionalA);
   b+=para(p.factoresDesencadenantes&&'Factores desencadenantes: '+p.factoresDesencadenantes);
   b+=para(p.factoresMantenedores&&'Factores mantenedores: '+p.factoresMantenedores);
 
-  b+=sec(8,'Antecedentes de Salud');
+  b+=sec(4,'Historia de Vida');
+  b+=para(p.historiaInfancia&&'Infancia: '+p.historiaInfancia);
+  b+=para(p.historiaAdolescencia&&'Adolescencia: '+p.historiaAdolescencia);
+  b+=rowList('Eventos vitales significativos',p.eventosVitales);
+  b+=para(p.otrosEventosVitales);
+
+  b+=sec(5,'Contexto Familiar y Social');
+  b+=row('Composición familiar',p.composicionFamiliarA);
+  b+=row('Calidad de vínculos',p.calidadVinculosA);
+  b+=para(p.dinamicaFamiliarA);
+  b+=rowList('Antecedentes familiares de salud mental',p.ahfSaludMental);
+  b+=row('Red de apoyo',p.redApoyo);b+=row('Calidad de relaciones',p.calidadRelaciones);
+  b+=para(p.conflictosInterpersonales&&'Conflictos interpersonales: '+p.conflictosInterpersonales);
+
+  b+=sec(6,'Área de Pareja y Sexualidad');
+  b+=row('Estado de pareja',p.estadoPareja);b+=row('Orientación sexual',p.orientacionSexual);
+  b+=row('Identidad de género',p.identidadGenero);
+  b+=row('Satisfacción sexual',p.satisfaccionSexual);
+  b+=row('Calidad de la relación',p.calidadRelacionPareja);
+  b+=para(p.historiaRelaciones&&'Historia relacional: '+p.historiaRelaciones);
+  b+=para(p.dificultadesPareja&&'Dificultades: '+p.dificultadesPareja);
+
+  b+=sec(7,'Área Laboral y Funcional');
+  b+=row('Situación laboral',p.situacionLaboral);
+  b+=row('Ocupación actual',p.ocupacionActual||p.ocupacionDetalle);
+  b+=row('Estabilidad laboral',p.estabilidadLaboral);
+  b+=row('Satisfacción laboral',p.satisfaccionLaboral);
+  b+=row('Estrés laboral',p.estresLaboral);
+  b+=row('Relaciones laborales',p.relacionesTrabajo);
+  b+=para(p.problemasLaborales&&'Problemas laborales: '+p.problemasLaborales);
+  b+=row('Autonomía en AVDB',p.autonomiaAVDB);b+=row('Rutina diaria',p.rutinaOrganizacion);
+
+  b+=sec(8,'Hábitos y Consumo');
+  b+=row('Calidad del sueño',p.calidadSueno);
+  b+=rowList('Patrones de sueño',p.habSuenoA);
+  b+=rowList('Alimentación',p.habAlimentacionA);
+  b+=row('Actividad física',p.actividadFisica);
+  b+=row('Alcohol',p.consumoAlcohol);b+=row('Tabaco',p.consumoTabaco);
+  b+=row('Drogas',p.consumoDrogas);b+=row('Tipos',p.tiposDrogas);
+  b+=row('Medicación no prescrita',p.medicacionNoPrescrita);
+
+  b+=sec(9,'Antecedentes de Salud');
   b+=row('Diagnóstico previo',p.diagnosticoPrevio);
   b+=row('Enfermedades médicas',p.diagnosticoPrevioMed);
-  b+=row('Medicación actual',p.medicacionActual);
+  b+=row('Medicación actual',p.medicacionActual);b+=row('Especialista',p.especialistaMedicacion);
   b+=rowList('Consultas previas',p.terapiasHistorial);
   b+=row('Diagnóstico de especialista',p.diagnosticoEspecialista);
+  b+=rowList('Intervenciones previas',p.intervencionesPrevias);
 
-  b+=sec(9,'Evaluación de Riesgo');
-  b+=row('Ideación suicida',p.ideacionSuicida);b+=row('Plan suicida',p.planSuicida);
-  b+=row('Autolesiones',p.autolesiones);b+=row('Riesgo heteroagresivo',p.riesgoHeteroagresivo);
-  b+=para(p.obsRiesgo);
+  b+=sec(10,'Evaluación de Riesgo');
+  b+=row('Ideación suicida actual',p.ideacionSuicidaActual||p.ideacionSuicida);
+  b+=row('Ideación suicida pasada',p.ideacionSuicidaPasada);
+  b+=row('Intentos previos',p.intentosPrevios);b+=row('Plan suicida',p.planSuicida);
+  b+=row('Autolesiones',p.autolesiones);
+  b+=row('Riesgo para otros',p.riesgoParaOtros||p.riesgoHeteroagresivo);
+  b+=row('Nivel de riesgo global',p.nivelRiesgoGlobal);
+  b+=para(p.notasRiesgo||p.obsRiesgo);
 
-  b+=sec(10,'Observación Clínica');
-  b+=row('Presentación general',p.obsApariencia||p.observacionActitud);
-  b+=row('Actitud durante la entrevista',p.obsActitud);
-  b+=row('Lenguaje y pensamiento',p.obsLenguaje||p.observacionLenguaje);
-  b+=row('Estado de ánimo y afecto',p.obsEstadoAnimo);
-  b+=row('Insight',p.obsInsight||p.observacionInsight);
-  b+=row('Juicio',p.obsJuicio);
-  b+=para(p.obsClinicaNotas||p.observacionNotas);
+  b+=sec(11,'Observación Clínica');
+  b+=row('Apariencia general',p.aparienciaGeneral||p.obsApariencia||p.observacionActitud);
+  b+=row('Actitud',p.actitudAdulto||p.obsActitud);
+  b+=row('Lenguaje y pensamiento',p.lenguajeAdulto||p.obsLenguaje||p.observacionLenguaje);
+  b+=row('Estado emocional',p.estadoEmocionalAdulto||p.obsEstadoAnimo);
+  b+=row('Coherencia del discurso',p.coherenciaDiscurso);
+  b+=row('Atención y concentración',p.atencionConcentracion);b+=row('Memoria',p.memoriaA);
+  b+=row('Insight',p.insightAdulto||p.insightA||p.obsInsight||p.observacionInsight);
+  b+=row('Juicio',p.juicioAdulto||p.obsJuicio);
+  b+=row('Disposición terapéutica',p.disposicionAdulto);
+  b+=para(p.notasClinicasAdulto||p.obsClinicaNotas||p.observacionNotas);
+
+  b+=sec(12,'Hipótesis y Diagnóstico');
+  b+=para(p.hipotesisClinica&&'Hipótesis: '+p.hipotesisClinica);
+  b+=rowList('Diagnóstico',[...(p.diagnosticoAdulto||[]),(p.diagnostico||[])].flat().filter(Boolean));
+  b+=para(p.impresionDiagnosticaAdulto||p.impresionDiagnostica);
+
+  b+=sec(13,'Plan de Intervención');
+  b+=row('Tipo de terapia',p.tipoTerapia);b+=row('Frecuencia',p.frecuenciaSesiones);
+  b+=para(p.objetivosTerapeuticos&&'Objetivos: '+p.objetivosTerapeuticos);
+  b+=row('Técnicas / Trabajo',p.tecnicasUtilizar);
   return b;
 }
 
@@ -4756,55 +4825,113 @@ function bodyAdolescente(p,sec,row,rowList,para,esc,escs){
   b+=sec(1,'Identificación');
   b+=row('Nombre',p.nombre);b+=row('Edad',p.edad?p.edad+' años':null);
   b+=row('Fecha de nacimiento',p.fechaNac?fmtDate(p.fechaNac):null);
-  b+=row('Sexo',p.sexo);b+=row('Grado escolar',p.gradoEscolar);
-  b+=row('Institución',p.institucion);b+=row('Representante',p.repNombre);
+  b+=row('Cédula',p.cedula);b+=row('Sexo',p.sexo);
+  b+=row('Grado escolar',p.gradoEscolar);b+=row('Institución',p.institucion);
+  b+=row('Representante',p.repNombre?(p.repNombre+(p.repParentesco?' ('+p.repParentesco+')':'')):null);
   b+=row('Teléfono',p.repTelefono);
 
-  b+=sec(2,'Motivo de Consulta');b+=para(p.motivoConsulta);
+  b+=sec(2,'Motivo de Consulta');
+  b+=para(p.motivoAdolescente&&'Versión adolescente: '+p.motivoAdolescente);
+  b+=para(p.motivoRepresentante&&'Versión representante: '+p.motivoRepresentante);
   b+=row('¿Quién consulta?',p.quienConsulta);b+=row('Actitud ante la consulta',p.actitudConsulta);
 
-  b+=sec(3,'Desarrollo y Antecedentes');
-  b+=para(p.antecedentesDesarrollo);
-  b+=row('Diagnóstico previo',p.diagnosticoPrevio);
-  b+=rowList('Terapias previas',p.terapiasHistorial);
-  b+=row('Enfermedades médicas',p.diagnosticoPrevioMed);
-  b+=row('Medicación',p.medicacionActual);
+  b+=sec(3,'Problema Actual');
+  b+=para(p.problemaActual||p.descripcionProblema);
+  b+=row('Inicio',p.inicioproblema||p.inicioProblemaTiempo);b+=row('Curso',p.cursoProblema);
+  b+=row('Desencadenantes',p.desencadenantes);
+  b+=row('Factores mantenedores',p.factoresMantenedores);
+  b+=rowList('Impacto en',p.impactoProblema);
+  b+=rowList('Síntomas emocionales',p.sintomasEmocionales);
+  b+=rowList('Síntomas conductuales',p.sintomasConductuales);
+  b+=rowList('Síntomas de ansiedad',p.sintomasAnsiedadA);
 
-  b+=sec(4,'Área Escolar');
-  b+=row('Institución',p.institucion);b+=row('Grado',p.gradoEscolar);
+  b+=sec(4,'Desarrollo y Antecedentes');
+  b+=para(p.antecedentesDesarrollo);
+  b+=rowList('Dificultades previas',p.dificultadesPrevias);
+  b+=row('Diagnóstico previo',p.diagnosticoPrevio);
+  b+=rowList('Terapias previas',p.terapiasHistorial);b+=row('Especialista',p.especialistaMedicacion);
+  b+=row('Enfermedades médicas',p.diagnosticoPrevioMed);b+=row('Medicación',p.medicacionActual);
+
+  b+=sec(5,'Área Escolar');
   b+=row('Rendimiento académico',p.rendimientoAcademico);
+  b+=row('Atención en clase',p.atencionClaseAdo);
+  b+=row('Adaptación escolar',p.adaptacionEscolar);
+  b+=rowList('Conducta en clase',p.conductaClaseAdo);
   b+=rowList('Dificultades académicas',p.dificultadesAcademicas);
-  b+=row('Relación con compañeros',p.relacionCompaneros);
-  b+=row('Bullying',p.bullying&&p.bullying!=='No'?p.bullying:null);
+  b+=row('Relación con compañeros',p.relacionCompaneros||p.relacionDocentesAdo);
   b+=row('Relación con docentes',p.relacionDocentes);
+  b+=row('Bullying',p.bullyingAdo&&p.bullyingAdo!=='No'?p.bullyingAdo+(p.rolBullyingAdo?' — '+p.rolBullyingAdo:''):null);
   b+=row('Asistencia',p.asistenciaEscolar);
 
-  b+=sec(5,'Área Familiar');
+  b+=sec(6,'Área Familiar');
   b+=row('Composición familiar',p.composicionFamiliarA||p.composicionFamiliar);
   b+=row('Calidad de vínculos',p.calidadVinculosA);
   b+=para(p.dinamicaFamiliarA||p.dinamicaFamiliar);
   b+=rowList('Antecedentes de salud mental familiar',p.ahfSaludMental);
   b+=row('Relación con padres',p.relacionPadres);b+=row('Límites',p.respuestaLimites);
+  b+=row('Estilo de crianza',p.estilosCrianza);b+=row('Comunicación con padres',p.comunicacionPadres);
+  b+=row('Respuesta a normas',p.respuestaNormas);b+=row('Autonomía',p.nivelAutonomia);
+  b+=row('Conflictos familiares',p.conflictosFamiliares);
 
-  b+=sec(6,'Área Emocional y Conductual');
-  b+=para(p.problemaActual||p.descripcionProblema);
-  b+=rowList('Síntomas emocionales',p.sintomasEmocionales);
-  b+=rowList('Síntomas conductuales',p.sintomasConductuales);
-  b+=row('Inicio',p.inicioProblemaTiempo);
-  b+=row('Uso de tecnología',p.usoTecnologia||p.tecnologiaUso);
-  b+=row('Horas diarias de pantalla',p.horasPantalla);
-  b+=rowList('Actividades extracurriculares',p.actividadesExtracurriculares?[p.actividadesExtracurriculares]:null);
+  b+=sec(7,'Identidad y Autoconcepto');
+  b+=row('Autoestima',p.autoestima);b+=row('Imagen corporal',p.imagenCorporal);
+  b+=row('Identidad personal',p.identidadPersonal);
+  b+=row('Búsqueda de independencia',p.busquedaIndependencia);
+  b+=row('Orientación/Identidad de género',p.orientacionSexualAdo&&p.orientacionSexualAdo!=='No lo ha explorado o expresado'?p.orientacionSexualAdo:null);
+  b+=row('Valores',p.valoresAdolescente);
 
-  b+=sec(7,'Evaluación de Riesgo');
-  b+=row('Ideación suicida',p.ideacionSuicida);b+=row('Plan',p.planSuicida);
-  b+=row('Autolesiones',p.autolesiones);b+=para(p.obsRiesgo);
+  b+=sec(8,'Área Emocional y Conductual');
+  b+=row('Estado de ánimo',p.estadoAnimoAdo);b+=row('Regulación emocional',p.regulacionAdo);
+  b+=row('Irritabilidad',p.irritabilidadAdo&&p.irritabilidadAdo!=='No presenta'?p.irritabilidadAdo:null);
+  b+=row('Impulsividad',p.impulsividadAdo&&p.impulsividadAdo!=='No presenta'?p.impulsividadAdo:null);
+  b+=row('Sensibilidad al rechazo',p.sensibilidadRechazo);
+  b+=row('Desafío a autoridad',p.desafioAutoridad&&p.desafioAutoridad!=='No presenta'?p.desafioAutoridad:null);
+  b+=rowList('Conductas de riesgo',(p.conductasRiesgoAdo||[]).filter(x=>x!=='Ninguna'));
 
-  b+=sec(8,'Observación Clínica');
+  b+=sec(9,'Tecnología y Hábitos');
+  b+=row('Tiempo de pantalla',p.tiempoPantalla);b+=row('Redes sociales',p.redesSociales);
+  b+=rowList('Riesgos online',(p.riesgosOnline||[]).filter(x=>x!=='Ninguno identificado'));
+  b+=row('Calidad del sueño',p.calidadSuenoAdo);b+=row('Alimentación',p.alimentacionAdo);
+  b+=row('Uso de tecnología',p.usoTecnologia||p.tecnologiaUso);b+=row('Horas de pantalla',p.horasPantalla);
+  b+=row('Alcohol',p.consumoAlcoholAdo&&p.consumoAlcoholAdo!=='No consume'?p.consumoAlcoholAdo:null);
+  b+=row('Tabaco/Vapeo',p.consumoTabacoAdo&&p.consumoTabacoAdo!=='No consume'?p.consumoTabacoAdo:null);
+  b+=row('Drogas',p.consumoDrogasAdo&&p.consumoDrogasAdo!=='No consume'?p.consumoDrogasAdo:null);
+
+  b+=sec(10,'Área Social');
+  b+=row('Cantidad de amigos',p.cantidadAmigos);b+=row('Calidad de amistades',p.calidadAmigos);
+  b+=row('Pertenencia a grupo',p.pertenenciaGrupo);b+=row('Influencia de pares',p.influenciaPares);
+  b+=row('Aislamiento',p.aislamientoAdo);
+
+  b+=sec(11,'Evaluación de Riesgo');
+  b+=row('Ideación suicida',p.ideacionSuicidaAdo||p.ideacionSuicida);
+  b+=row('Intentos previos',p.intentosPreviosAdo);
+  b+=row('Autolesiones',p.autolesionesAdo||p.autolesiones);
+  b+=row('Nivel de riesgo',p.nivelRiesgoAdo);
+  b+=para(p.notasRiesgoAdo||p.obsRiesgo);
+
+  b+=sec(12,'Antecedentes de Salud');
+  b+=row('Diagnóstico previo',p.diagnosticoPrevio);
+  b+=row('Medicación',p.medicacionActual);b+=row('Especialista',p.especialistaMedicacion);
+  b+=rowList('Consultas previas',p.terapiasHistorial);
+  b+=row('Enfermedades médicas',p.diagnosticoPrevioMed);
+
+  b+=sec(13,'Observación Clínica');
   b+=row('Actitud',p.observacionActitud||p.obsActitud);
+  b+=row('Interacción',p.observacionInteraccion);
   b+=row('Lenguaje',p.observacionLenguaje||p.obsLenguaje);
   b+=row('Estado emocional',p.observacionEstadoEmocional||p.obsEstadoAnimo);
   b+=row('Insight',p.observacionInsight||p.obsInsight);
+  b+=row('Disposición',p.observacionDisposicion);
   b+=para(p.observacionNotas||p.obsClinicaNotas);
+
+  b+=sec(14,'Hipótesis y Diagnóstico');
+  b+=para(p.hipotesisClinica&&'Hipótesis: '+p.hipotesisClinica);
+  b+=rowList('Diagnóstico',p.diagnostico);b+=para(p.impresionDiagnostica);
+
+  b+=sec(15,'Plan de Intervención');
+  b+=row('Tipo de terapia',p.tipoTerapia);b+=row('Frecuencia',p.frecuenciaSesiones);
+  b+=para(p.objetivosTerapeuticos&&'Objetivos: '+p.objetivosTerapeuticos);
+  b+=row('Trabajo familiar',p.tecnicasUtilizar);
   return b;
 }
 
@@ -4813,8 +4940,10 @@ function bodyAdultoMayor(p,sec,row,rowList,para,esc,escs){
   b+=sec(1,'Identificación');
   b+=row('Nombre',p.nombre);b+=row('Edad',p.edad?p.edad+' años':null);
   b+=row('Fecha de nacimiento',p.fechaNac?fmtDate(p.fechaNac):null);
+  b+=row('HC',p.hcCode);b+=row('Tipo',p.tipoHistoria);
   b+=row('Sexo',p.sexo);b+=row('Estado civil',p.estadoCivil);
   b+=row('Nivel educativo',p.nivelEducativo);b+=row('Ocupación previa',p.ocupacion);
+  b+=row('Apertura HC',p.fechaApertura?fmtDate(p.fechaApertura):null);
 
   b+=sec(2,'Motivo de Consulta');b+=para(p.motivoConsultaAdulto||p.motivoConsulta);
   b+=row('Versión familiar/cuidador',p.amMotivoFamiliar);
@@ -4826,9 +4955,9 @@ function bodyAdultoMayor(p,sec,row,rowList,para,esc,escs){
   b+=para(p.amObsRedApoyo);
 
   b+=sec(4,'Área Funcional (ABVD / AIVD)');
-  const abvd=[['Baño/higiene',p.amAbvdBano],['Vestirse',p.amAbvdVestirse],['Alimentarse',p.amAbvdComer],['Movilidad',p.amAbvdMovilidad],['Medicación',p.amAbvdMedicacion]];
+  const abvd=[['Baño/higiene',p.amAbvdBano],['Vestirse',p.amAbvdVestirse],['Alimentarse',p.amAbvdComer],['Continencia',p.amAbvdBano2],['Movilidad',p.amAbvdMovilidad],['Medicación',p.amAbvdMedicacion]];
   abvd.forEach(([l,v])=>{if(v)b+=row('ABVD — '+l,v);});
-  const aivd=[['Dinero',p.amAivdDinero],['Transporte',p.amAivdTransporte],['Compras',p.amAivdCompras],['Cocina',p.amAivdCocina],['Teléfono',p.amAivdTelefono]];
+  const aivd=[['Dinero',p.amAivdDinero],['Transporte',p.amAivdTransporte],['Compras',p.amAivdCompras],['Cocina',p.amAivdCocina],['Teléfono',p.amAivdTelefono],['Decisiones',p.amAivdDecisiones]];
   aivd.forEach(([l,v])=>{if(v)b+=row('AIVD — '+l,v);});
   b+=para(p.amObsFuncional);
 
@@ -4838,23 +4967,44 @@ function bodyAdultoMayor(p,sec,row,rowList,para,esc,escs){
   b+=row('Memoria reciente',p.amMemoriaReciente);b+=row('Memoria remota',p.amMemoriaRemota);
   b+=row('Atención',p.amAtencion);b+=row('Lenguaje',p.amLenguaje);
   b+=row('Funciones ejecutivas',p.amFuncionesEjec);b+=row('Test aplicado',p.amTestCognitivo);
-  b+=para(p.amObsCognitiva);
+  b+=row('Curso del deterioro',p.amCursoDeterioro);
+  b+=para(p.amObsCognitivo||p.amObsCognitiva);
 
   b+=sec(6,'Área Emocional');
   b+=para(p.problemaActual||p.descripcionProblema);
-  b+=row('Estado de ánimo',p.amEstadoAnimo);b+=row('Signos de depresión',p.amDepresion);
-  b+=row('Signos de ansiedad',p.amAnsiedad);b+=row('Sueño',p.amSueno);
-  b+=row('Apetito',p.amApetito);b+=para(p.amObsEmocional);
+  b+=row('Estado de ánimo',p.amEstadoAnimo);
+  b+=row('Estado de ánimo predominante',p.estadoAnimoPredominante);
+  b+=row('Signos de depresión',p.amDepresion);b+=row('Apatía',p.amApatia);
+  b+=row('Signos de ansiedad',p.amAnsiedad);b+=row('Duelo',p.amDuelo);
+  b+=row('Sentido de vida',p.amSentidoVida);b+=row('Deseo de morir',p.amDeseoMorir);
+  b+=row('Ideación suicida',p.ideacionSuicidaActual);
+  b+=row('Sueño',p.amSueno);b+=row('Apetito',p.amApetito);
+  b+=para(p.amObsEmocional);
 
-  b+=sec(7,'Antecedentes de Salud');
+  b+=sec(7,'Evaluación de Riesgo');
+  b+=row('Riesgo de caídas',p.amRiesgoCaidas);b+=row('Caídas recientes',p.amCaidas);
+  b+=row('Maltrato',p.amMaltrato);b+=row('Negligencia',p.amNegligencia);
+  b+=row('Nivel de riesgo global',p.nivelRiesgoGlobal);
+  b+=para(p.notasRiesgo);
+
+  b+=sec(8,'Antecedentes de Salud');
   b+=row('Enfermedades médicas',p.amEnfermedades||p.diagnosticoPrevioMed);
   b+=row('Medicación actual',p.medicacionActual);b+=row('Diagnóstico previo',p.diagnosticoPrevio);
   b+=rowList('Terapias previas',p.terapiasHistorial);
 
-  b+=sec(8,'Observación Clínica');
+  b+=sec(9,'Observación Clínica');
   b+=row('Presentación',p.obsApariencia||p.observacionActitud);
   b+=row('Actitud',p.obsActitud);b+=row('Insight',p.obsInsight||p.observacionInsight);
   b+=para(p.obsClinicaNotas||p.observacionNotas);
+
+  b+=sec(10,'Hipótesis y Diagnóstico');
+  b+=para(p.hipotesisClinica&&'Hipótesis: '+p.hipotesisClinica);
+  b+=rowList('Diagnóstico',[...(p.diagnosticoAdulto||[]),(p.diagnostico||[])].flat().filter(Boolean));
+  b+=para(p.impresionDiagnosticaAdulto||p.impresionDiagnostica);
+
+  b+=sec(11,'Plan de Intervención');
+  b+=row('Tipo de terapia',p.tipoTerapia);b+=row('Frecuencia',p.frecuenciaSesiones);
+  b+=para(p.objetivosTerapeuticos&&'Objetivos: '+p.objetivosTerapeuticos);
   return b;
 }
 
@@ -4863,12 +5013,15 @@ function bodyPareja(p,sec,row,rowList,para,esc,escs){
   let b='';
   b+=sec(1,'Identificación de la Pareja');
   b+=row('Historia clínica',p.hcCode);
-  b+=row(A+' — Edad',p.edadA?p.edadA+' años':null);b+=row(A+' — Ocupación',p.ocupacionA);
-  b+=row(B+' — Edad',p.edadB?p.edadB+' años':null);b+=row(B+' — Ocupación',p.ocupacionB);
+  b+=row(A+' — Edad',p.edadA?p.edadA+' años':null);
+  b+=row(A+' — Cédula',p.cedulaA);b+=row(A+' — Ocupación',p.ocupacionA);
+  b+=row(B+' — Edad',p.edadB?p.edadB+' años':null);
+  b+=row(B+' — Cédula',p.cedulaB);b+=row(B+' — Ocupación',p.ocupacionB);
+  b+=row('Estado civil',p.estadoCivilPareja);
   b+=row('Tiempo de relación',p.tiempoRelacion);b+=row('Tipo de relación',p.tipoRelacion);
-  b+=row('Hijos',p.tieneHijos);b+=row('Convivencia',p.convivencia);
-
-  // HCs vinculadas
+  b+=row('Hijos',p.tieneHijos||p.hijos);
+  b+=row('Edades de hijos',p.edadesHijos);
+  b+=row('Convivencia',p.convivencia);b+=row('Desde',p.desdeConvivencia);
   if(p.hcVinculadaA||p.hcVinculadaB){
     b+='<p style="margin:4pt 0;font-family:Arial,sans-serif;font-size:12pt;"><b>Historias vinculadas:</b> ';
     if(p.hcVinculadaA)b+=A+': HC '+escs(p.hcVinculadaA)+' ';
@@ -4876,51 +5029,105 @@ function bodyPareja(p,sec,row,rowList,para,esc,escs){
     b+='</p>';
   }
 
-  b+=sec(2,'Motivo de Consulta');b+=para(p.motivoConsultaPareja||p.motivoConsulta);
+  b+=sec(2,'Motivo de Consulta');
+  b+=para(p.motivoConsultaPareja||p.motivoConsulta);
   b+=row('Quién propone la consulta',p.quienProponeTerapia);
+  b+=para(p.motivoA&&'Versión de '+A+': '+p.motivoA);
+  b+=para(p.motivoB&&'Versión de '+B+': '+p.motivoB);
+  b+=para(p.motivoConjunto&&'Motivo conjunto: '+p.motivoConjunto);
   b+=row('Motivación de '+A,p.motivacionA);b+=row('Motivación de '+B,p.motivacionB);
+  b+=row('Viabilidad terapéutica',p.viabilidadTerapia);
 
   b+=sec(3,'Historia de la Relación');
-  b+=para(p.historiaRelacion);b+=row('Crisis previas',p.crisisPrevias);
-  b+=row('Intentos de solución',p.intentosSolucion);b+=row('Rupturas previas',p.rupturasPrevias);
+  b+=para(p.comoSeConocieron&&'Cómo se conocieron: '+p.comoSeConocieron);
+  b+=para(p.etapasRelacion&&'Etapas: '+p.etapasRelacion);
+  b+=para(p.historiaRelacion);
+  b+=row('Crisis previas',p.crisisPrevias);
+  b+=row('Rupturas y reconciliaciones',p.rupturasReconciliaciones||p.rupturasPrevias);
+  b+=row('Intentos de solución',p.intentosSolucion);
+  b+=row('Decisiones de vínculo',p.decisionesVinculo);
+  b+=para(p.infidelidad&&'Infidelidad: '+p.infidelidad);
 
   b+=sec(4,'Dinámica Relacional');
   b+=row('Tipo de dinámica',p.tipoDinamica);
   b+=row('Apego '+A,p.apegoA);b+=row('Apego '+B,p.apegoB);
-  b+=para(p.patronesDisfuncionales&&'Patrones: '+p.patronesDisfuncionales);
+  b+=row('Modelo relacional '+A,p.modelosRelacionA);
+  b+=row('Modelo relacional '+B,p.modelosRelacionB);
+  b+=row('Historia familiar '+A,p.historiaFamiliarA);
+  b+=row('Historia familiar '+B,p.historiaFamiliarB);
+  b+=row('Distribución de poder',p.distribucionPoder);
+  b+=row('Roles en la relación',p.rolesRelacion);
+  b+=row('Dependencia / Autonomía',p.dependenciaAutonomia);
+  b+=para(p.patronesDisfuncionales&&'Patrones disfuncionales: '+p.patronesDisfuncionales);
+  b+=para(p.cursoDinamica&&'Curso de la dinámica: '+p.cursoDinamica);
+  b+=para(p.mejoriaEmpeoramiento&&'Mejoría / Empeoramiento: '+p.mejoriaEmpeoramiento);
   b+=para(p.factoresMantenedoresPareja&&'Factores mantenedores: '+p.factoresMantenedoresPareja);
 
   b+=sec(5,'Comunicación y Conflicto');
-  b+=row('Estilo de comunicación',p.estiloComPareja);
+  b+=row('Estilo comunicacional '+A,p.estiloComA);
+  b+=row('Estilo comunicacional '+B,p.estiloComB);
+  b+=row('Estilo comunicacional (general)',p.estiloComPareja);
+  b+=row('Cómo escala el conflicto',p.cicloComoEscala);
+  b+=row('Quién inicia',p.cicloQuienInicia);b+=row('Cómo termina',p.cicloComoTermina);
   b+=row('Manejo del conflicto',p.manejoConflicto);
   b+=row('Temas de conflicto frecuentes',p.temasConflicto);
+  b+=row('Conductas de celos',p.conductasCelos);
+  b+=row('Conductas de control',p.conductasControl);
   b+=row('Violencia',p.violenciaRelacion&&p.violenciaRelacion!=='No hay indicadores'?p.violenciaRelacion:null);
+  b+=row('Inicio de la dinámica violenta',p.inicioDinamica);
 
   b+=sec(6,'Área de Intimidad y Sexualidad');
-  b+=row('Satisfacción afectiva',p.satisfaccionAfectiva);b+=row('Satisfacción sexual',p.satisfaccionSexualPareja);
-  b+=para(p.dificultadesIntimidad&&'Dificultades: '+p.dificultadesIntimidad);
+  b+=row('Satisfacción afectiva '+A,p.satisfaccionAfectivaA||p.satisfaccionAfectiva);
+  b+=row('Satisfacción afectiva '+B,p.satisfaccionAfectivaB);
+  b+=row('Satisfacción sexual',p.satisfaccionSexualPareja);
+  b+=row('Frecuencia sexual',p.frecuenciaSexual);
+  b+=para(p.dificultadesSexuales&&'Dificultades sexuales: '+p.dificultadesSexuales);
+  b+=para(p.dificultadesIntimidad&&'Dificultades de intimidad: '+p.dificultadesIntimidad);
+  b+=para(p.aspectosPositivos&&'Aspectos positivos: '+p.aspectosPositivos);
 
   b+=sec(7,'Antecedentes Relevantes');
   b+=row('Antecedentes de salud mental de '+A,p.saludMentalA);
   b+=row('Antecedentes de salud mental de '+B,p.saludMentalB);
+  b+=para(p.eventosEmocA&&'Eventos emocionales '+A+': '+p.eventosEmocA);
+  b+=para(p.eventosEmocB&&'Eventos emocionales '+B+': '+p.eventosEmocB);
   b+=row('Terapias previas',p.terapiasPrevias);
 
   b+=sec(8,'Evaluación de Riesgo');
-  b+=row('Violencia activa',p.violenciaActiva);b+=row('Riesgo para hijos',p.riesgoHijos);
-  b+=para(p.obsRiesgoPareja);
+  b+=row('Violencia activa',p.violenciaPareja||p.violenciaActiva);
+  b+=row('Riesgo físico',p.riesgoFisicoPareja);
+  b+=row('Riesgo para hijos',p.riesgoHijos);
+  b+=para(p.notasRiesgoPareja||p.obsRiesgoPareja);
 
   b+=sec(9,'Observación Clínica');
+  b+=row('Sentimientos de '+A,p.sentimientosA);b+=row('Sentimientos de '+B,p.sentimientosB);
+  b+=row('Motivación para continuar',p.motivacionContinuar);
   b+=row('Interacción en sesión',p.interaccionSesion);
   b+=row('Comunicación observada',p.comunicacionObservada);
-  b+=para(p.obsClinicaPareja);
+  b+=para(p.notasClinicaPareja||p.obsClinicaPareja);
+
+  b+=sec(10,'Hipótesis, Diagnóstico y Plan');
+  b+=para(p.hipotesisClinica&&'Hipótesis: '+p.hipotesisClinica);
+  b+=row('Tipo de terapia',p.tipoTerapiaPareja);
+  b+=row('Frecuencia',p.frecuenciaSesionesPareja);
+  b+=para(p.objetivosTerapeuticosPareja&&'Objetivos: '+p.objetivosTerapeuticosPareja);
+
+  if(p.estadoRelacionCierre){
+    b+=sec(11,'Cierre');
+    b+=row('Estado de la relación al cierre',p.estadoRelacionCierre);
+    b+=row('Motivo de cierre',p.motivoCierre);
+    b+=para(p.recomendacionesCierre&&'Recomendaciones: '+p.recomendacionesCierre);
+  }
   return b;
 }
+
 
 function bodyFamilia(p,sec,row,rowList,para,esc,escs){
   let b='';
   b+=sec(1,'Identificación de la Familia');
   b+=row('Apellido familiar',p.apellidoFamilia||p.nombre);
+  b+=row('HC',p.hcCode);b+=row('Tipo',p.tipoHistoria);
   b+=row('Tipo de familia',p.tipoFamilia);b+=row('Etapa del ciclo vital',p.cicloPVital);
+  b+=row('Apertura HC',p.fechaApertura?fmtDate(p.fechaApertura):null);
 
   b+=sec(2,'Composición Familiar');
   if((p.famMiembros||[]).length){
@@ -4930,13 +5137,25 @@ function bodyFamilia(p,sec,row,rowList,para,esc,escs){
     });
   }
 
-  b+=sec(3,'Motivo de Consulta');b+=para(p.motivoConsultaFam||p.motivoConsulta);
+  b+=sec(3,'Motivo de Consulta');
+  b+=para(p.motivoConsultaFam||p.motivoConsulta);
+  b+=row('Quién solicita',p.famQuienSolicita);
   b+=row('Consultante',p.famConsultante);b+=row('Paciente identificado',p.famPacienteId);
+  b+=row('¿Quién afecta el síntoma?',p.famQuienAfecta);
+  b+=para(p.famManifestacion&&'Manifestación: '+p.famManifestacion);
+  b+=para(p.famProblemaDescripcion&&'Descripción del problema: '+p.famProblemaDescripcion);
+  b+=row('Desencadenante',p.famDesencadenante);
+  b+=row('Desde cuándo',p.famDesdeWhen);
+  b+=row('Intentos de solución',p.famIntentosSolucion);
 
   b+=sec(4,'Dinámica Familiar');
   b+=row('Tipo de dinámica',p.famTipoDinamica);
-  b+=row('Función del síntoma',p.famFuncionSistematica);
+  b+=row('Función del síntoma',p.famFuncionSintoma||p.famFuncionSistematica);
+  b+=row('Patrón central',p.famPatronCentral);
+  b+=row('Roles',p.famRoles);b+=row('Poder/Autoridad',p.famPoder);
+  b+=row('Alianzas',p.famAlianzas);
   b+=para(p.famPatronesRepetitivos&&'Patrones repetitivos: '+p.famPatronesRepetitivos);
+  b+=para(p.famCambiosDinamica&&'Cambios en la dinámica: '+p.famCambiosDinamica);
 
   b+=sec(5,'Estructura y Comunicación');
   b+=row('Calidad de la comunicación',p.famComunicacion);
@@ -4945,17 +5164,27 @@ function bodyFamilia(p,sec,row,rowList,para,esc,escs){
 
   b+=sec(6,'Historia Familiar');
   b+=para(p.famHistoriaFamilia);
+  b+=row('Cambios recientes',p.famCambiosRecientes);
   b+=row('Crisis actual',p.famCrisisActual);
   b+=para(p.famEventosSignificativos&&'Eventos significativos: '+p.famEventosSignificativos);
 
-  b+=sec(7,'Evaluación de Riesgo');
+  b+=sec(7,'Participantes y Sesiones');
+  b+=para(p.famParticipantes&&'Participantes habituales: '+p.famParticipantes);
+  b+=row('Respuesta a la intervención',p.famRespuestaIntervencion);
+
+  b+=sec(8,'Evaluación de Riesgo');
   b+=row('Riesgo para menores',p.famRiesgoMenores);
   b+=row('Violencia intrafamiliar',p.famViolencia&&p.famViolencia!=='No hay indicadores'?p.famViolencia:null);
   b+=para(p.obsRiesgoFam);
 
-  b+=sec(8,'Observación Clínica');
+  b+=sec(9,'Observación Clínica');
   b+=row('Interacción en sesión',p.famInteraccionSesion);
   b+=para(p.famObsClinica);
+
+  b+=sec(10,'Hipótesis y Plan');
+  b+=para(p.hipotesisClinica&&'Hipótesis: '+p.hipotesisClinica);
+  b+=row('Tipo de terapia',p.tipoTerapia);b+=row('Frecuencia',p.frecuenciaSesiones);
+  b+=para(p.objetivosTerapeuticos&&'Objetivos: '+p.objetivosTerapeuticos);
   return b;
 }
 
