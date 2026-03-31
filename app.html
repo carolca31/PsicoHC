@@ -3838,14 +3838,15 @@ function renderTab(){
 
   else if(activeTab==="informe"){
     const inf=genInforme(p);
+    const fechaApertura=fmtDate(p.fechaApertura)||"—";
     el.innerHTML=`
     <div style="background:var(--bg);min-height:100%;padding:0;">
       <!-- Action bar -->
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:12px 16px;background:#fff;border-bottom:1.5px solid var(--border);position:sticky;top:0;z-index:10;">
         <button class="btn-green" onclick="copiarInforme()" id="btn-copy" style="font-size:12px">Copiar</button>
         <button class="btn-word" onclick="exportarWord()" style="font-size:12px">Word</button>
-        <button onclick="imprimirInforme()" style="padding:7px 14px;background:#7C3AED;border:none;border-radius:8px;font-size:12px;font-weight:700;color:#fff;cursor:pointer">Imprimir / PDF</button>
-        <button onclick="updateFechaInforme()" style="padding:7px 14px;background:var(--ypl);border:1px solid var(--yellow);border-radius:8px;font-size:12px;font-weight:700;color:var(--mid);cursor:pointer">Actualizar fecha</button>
+        <button onclick="imprimirInforme()" style="padding:7px 14px;background:#fff;border:2px solid var(--accent);border-radius:8px;font-size:12px;font-weight:700;color:var(--accent);cursor:pointer">🖨 Imprimir / PDF</button>
+        <button onclick="updateFechaInforme()" style="padding:7px 14px;background:var(--ypl);border:1px solid var(--yellow);border-radius:8px;font-size:12px;font-weight:700;color:var(--mid);cursor:pointer">📅 Actualizar fecha</button>
         <span style="font-size:11px;color:var(--mid);font-style:italic;margin-left:4px">Edita directamente en el documento</span>
       </div>
       <!-- Document paper -->
@@ -3869,6 +3870,8 @@ function renderTab(){
               <div style="font-size:11px;color:var(--mid)">Historia Clínica</div>
               <div style="font-size:13px;font-weight:800;color:var(--cobalt)">${p.hcCode||""}</div>
               <div style="font-size:11px;color:var(--mid);margin-top:2px">${p.tipoHistoria||""}</div>
+              <div style="font-size:10px;color:var(--light);margin-top:4px">Apertura: ${fechaApertura}</div>
+              <div style="font-size:10px;color:var(--light)">Generado: ${informeFecha}</div>
             </div>
           </div>
           <!-- Editable content -->
@@ -4012,7 +4015,7 @@ function genInformeAdultoMayor(p){
   r+=(p.frecuenciaSesiones?"Frecuencia: "+p.frecuenciaSesiones+nl:"");
   r+=(p.objetivosTerapeuticos?p.objetivosTerapeuticos+nl:"");
   r+=nl+sep;
-  r+="Generado por MedHC · "+new Date().toLocaleDateString("es-ES")+nl;
+  r+="Fecha de apertura HC: "+fmtDate(p.fechaApertura)+nl+"Fecha del informe: "+informeFecha+nl+"Generado por MedHC"+nl;
   return r;
 }
 
@@ -4062,7 +4065,7 @@ function genInformeGrupal(p){
   r+=(p.grpCambiosDinamica?p.grpCambiosDinamica+nl:"");
   r+=getDxSummaryText(nl);
   r+=nl+sep;
-  r+="Generado por MedHC · "+new Date().toLocaleDateString("es-ES")+nl;
+  r+="Fecha de apertura HC: "+fmtDate(p.fechaApertura)+nl+"Fecha del informe: "+informeFecha+nl+"Generado por MedHC"+nl;
   return r;
 }
 function genInformeFamilia(p){
@@ -4120,7 +4123,7 @@ function genInformeFamilia(p){
   r+=(p.famCambiosDinamica?p.famCambiosDinamica+nl:"");
   r+=(p.famRespuestaIntervencion?"Respuesta: "+p.famRespuestaIntervencion+nl:"");
   r+=nl+sep;
-  r+="Generado por MedHC · "+new Date().toLocaleDateString("es-ES")+nl;
+  r+="Fecha de apertura HC: "+fmtDate(p.fechaApertura)+nl+"Fecha del informe: "+informeFecha+nl+"Generado por MedHC"+nl;
   return r;
 }
 function genInforme(p){
@@ -4240,7 +4243,8 @@ function genInforme(p){
     if(p.sesiones.length>5)r+="   ... y "+(p.sesiones.length-5)+" sesiones anteriores."+nl;
   }
 r+="Firma: _______________________________________"+nl;
-  r+="Fecha: "+informeFecha+nl;
+  r+="Fecha de apertura HC: "+fmtDate(p.fechaApertura)+nl;
+  r+="Fecha del informe: "+informeFecha+nl;
   r+=SEP;
   return r;
 }
@@ -4333,7 +4337,7 @@ function genInformePareja(p){
   r+=(p.motivoCierre?"Cierre: "+p.motivoCierre+nl:"");
   r+=(p.estadoRelacionCierre?"Estado al cierre: "+p.estadoRelacionCierre+nl:"");
   r+=(p.recomendacionesCierre?"Recomendaciones: "+p.recomendacionesCierre+nl:"");
-  r+=nl+SEP+nl+"Firma: _______________________________________"+nl+"Fecha: "+informeFecha+nl+SEP;
+  r+=nl+SEP+nl+"Firma: _______________________________________"+nl+"Fecha de apertura HC: "+fmtDate(p.fechaApertura)+nl+"Fecha del informe: "+informeFecha+nl+SEP;
   return r;
 }
 
@@ -4435,7 +4439,7 @@ function genInformeAdolescente(p){
   r+=(p.frecuenciaSesiones?"Frecuencia: "+p.frecuenciaSesiones+nl:"");
   r+=(p.objetivosTerapeuticos?"Objetivos: "+p.objetivosTerapeuticos+nl:"");
   r+=(p.tecnicasUtilizar?"Trabajo familiar: "+p.tecnicasUtilizar+nl:"");
-  r+=nl+SEP+nl+"Firma: _______________________________________"+nl+"Fecha: "+informeFecha+nl+SEP;
+  r+=nl+SEP+nl+"Firma: _______________________________________"+nl+"Fecha de apertura HC: "+fmtDate(p.fechaApertura)+nl+"Fecha del informe: "+informeFecha+nl+SEP;
   return r;
 }
 
@@ -4575,7 +4579,8 @@ function genInformeAdulto(p){
     if(p.sesiones.length>5)r+="   ... y "+(p.sesiones.length-5)+" sesiones anteriores."+nl;
   }
 r+="Firma: _______________________________"+nl;
-    r+="Fecha: "+informeFecha+nl;
+    r+="Fecha de apertura HC: "+fmtDate(p.fechaApertura)+nl;
+    r+="Fecha del informe: "+informeFecha+nl;
   
   return r;
 }
@@ -6634,34 +6639,45 @@ const DX_ML={p:'Presente',par:'Parcial',a:'Ausente',oc:'Ocasional',fr:'Frecuente
 
 let dxSeg='adulto', dxFl='all';
 const DX_ST={};
-// Almacén por paciente: { [patientId]: { [diagId]: {marks,notes,subs} } }
+// Almacén por paciente en memoria: { [patientId]: { [diagId]: {marks,notes,subs} } }
 const DX_ST_CACHE={};
 
 function dxGst(id){if(!DX_ST[id])DX_ST[id]={marks:{},notes:{},subs:{}};return DX_ST[id];}
 
-// ── Guardar el estado DX del paciente actual en cache ─────────────────────────
+// ── Guardar DX_ST en cache Y en el campo dxState del paciente (persiste en Firestore) ──
 function dxSaveToCache(patientId){
   if(!patientId)return;
-  DX_ST_CACHE[patientId]=JSON.parse(JSON.stringify(DX_ST));
-}
-
-// ── Restaurar el estado DX del paciente desde cache (o vaciar si es nuevo) ────
-function dxRestoreFromCache(patientId){
-  resetDxState();
-  if(patientId&&DX_ST_CACHE[patientId]){
-    const saved=DX_ST_CACHE[patientId];
-    Object.keys(saved).forEach(k=>{DX_ST[k]=saved[k];});
+  const snapshot=JSON.parse(JSON.stringify(DX_ST));
+  DX_ST_CACHE[patientId]=snapshot;
+  // Guardar en la historia clínica del paciente para que persista entre sesiones
+  const p=patients.find(x=>x.id===patientId);
+  if(p){
+    p.dxState=snapshot;
+    saveP({...p});
   }
 }
 
-// ── Limpia TODOS los diagnósticos DSM marcados en memoria ─────────────────────
+// ── Restaurar DX_ST desde el paciente (Firestore primero, cache en memoria como fallback) ──
+function dxRestoreFromCache(patientId){
+  // Limpiar estado actual
+  Object.keys(DX_ST).forEach(k=>delete DX_ST[k]);
+  // Buscar primero en el objeto del paciente (viene de Firestore)
+  const p=patients.find(x=>x.id===patientId);
+  const saved=(p&&p.dxState)?p.dxState:DX_ST_CACHE[patientId];
+  if(saved){
+    Object.keys(saved).forEach(k=>{DX_ST[k]=saved[k];});
+    DX_ST_CACHE[patientId]=JSON.parse(JSON.stringify(saved));
+  }
+}
+
+// ── Limpia solo DX_ST en memoria (no el cache ni Firestore) ──────────────────
 function resetDxState(){
   Object.keys(DX_ST).forEach(k=>delete DX_ST[k]);
 }
 
-// ── Limpia también el cache completo (al cerrar sesión) ───────────────────────
+// ── Limpia TODO: memoria + cache (al cerrar sesión) ──────────────────────────
 function resetDxAll(){
-  resetDxState();
+  Object.keys(DX_ST).forEach(k=>delete DX_ST[k]);
   Object.keys(DX_ST_CACHE).forEach(k=>delete DX_ST_CACHE[k]);
 }
 function dxSa(a){document.documentElement.style.setProperty('--dx-a',a);}
