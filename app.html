@@ -641,6 +641,11 @@ pre{background:var(--alt);border:1px solid var(--border);border-radius:9px;paddi
     <span style="display:flex;align-items:center;gap:8px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>Programas y Comunidades</span>
     <span style="font-size:10px;background:#EDE9FE;color:#7C3AED;padding:2px 7px;border-radius:10px;font-weight:800">Beta</span>
   </button>
+  <!-- BOTÓN AGENDA -->
+  <button id="btn-agenda" onclick="openAgenda()" style="width:calc(100% - 16px);margin:4px 8px;padding:9px 12px;background:linear-gradient(135deg,var(--cobalt),var(--accent));color:#fff;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;text-align:left">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Agenda y Dashboard
+  </button>
   <div id="sfoot">0 historias clínicas</div>
 </div>
 
@@ -12256,6 +12261,549 @@ init();
     <div id="com-overlay-content"></div>
   </div>
 </div>
+
+<!-- ══ AGENDA Y DASHBOARD OVERLAY ══ -->
+<div id="agenda-overlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:800;overflow-y:auto;">
+  <style>
+  #agenda-overlay .ag-topbar{background:var(--cobalt);padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;box-shadow:0 2px 16px rgba(26,58,110,.18);}
+  #agenda-overlay .ag-tb-left{display:flex;align-items:center;gap:10px;}
+  #agenda-overlay .ag-tb-name{font-size:14px;font-weight:800;color:#fff;letter-spacing:-.02em;}
+  #agenda-overlay .ag-banner{background:var(--cobalt);border-radius:14px;padding:20px 24px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:16px;box-shadow:0 4px 18px rgba(26,58,110,.15);}
+  #agenda-overlay .ag-greeting{font-size:18px;font-weight:800;color:#fff;margin-bottom:3px;letter-spacing:-.02em;}
+  #agenda-overlay .ag-fecha{font-size:11px;color:rgba(255,255,255,.5);margin-bottom:14px;font-weight:500;}
+  #agenda-overlay .ag-bstats{display:flex;gap:10px;flex-wrap:wrap;}
+  #agenda-overlay .ag-bstat{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px 14px;min-width:80px;}
+  #agenda-overlay .ag-bstat-num{font-size:20px;font-weight:800;color:#fff;line-height:1;}
+  #agenda-overlay .ag-bstat-lbl{font-size:10px;color:rgba(255,255,255,.5);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-top:3px;}
+  #agenda-overlay .ag-main-grid{display:grid;grid-template-columns:1fr 300px;gap:14px;margin-bottom:14px;}
+  @media(max-width:720px){#agenda-overlay .ag-main-grid{grid-template-columns:1fr;}}
+  #agenda-overlay .ag-card{background:var(--surface);border-radius:13px;border:1.5px solid var(--border);overflow:hidden;}
+  #agenda-overlay .ag-card-hdr{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+  #agenda-overlay .ag-card-title{font-size:11px;font-weight:800;color:var(--cobalt);text-transform:uppercase;letter-spacing:.08em;}
+  #agenda-overlay .ag-card-body{padding:12px 16px;}
+  #agenda-overlay .ag-card-action{padding:4px 10px;background:var(--apl);color:var(--accent);border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;}
+  #agenda-overlay .ag-card-action:hover{background:var(--accent);color:#fff;}
+  #agenda-overlay .ag-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  #agenda-overlay .ag-dur-sel{padding:5px 8px;border:1.5px solid var(--border);border-radius:7px;font-size:11px;font-weight:700;color:var(--cobalt);background:#fff;cursor:pointer;outline:none;font-family:inherit;}
+  #agenda-overlay .ag-week-nav{display:flex;align-items:center;gap:4px;}
+  #agenda-overlay .ag-week-nav button{padding:4px 8px;background:var(--bg);border:1.5px solid var(--border);border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;color:var(--mid);font-family:inherit;}
+  #agenda-overlay .ag-week-nav button:hover{border-color:var(--accent);color:var(--accent);}
+  #agenda-overlay #ag-semana-lbl{font-size:11px;font-weight:700;color:var(--mid);min-width:108px;text-align:center;}
+  #agenda-overlay #ag-days-wrap{overflow-x:auto;}
+  #agenda-overlay #ag-days-grid{display:grid;grid-template-columns:repeat(6,1fr);min-width:520px;}
+  #agenda-overlay .ag-day-col{border-right:1px solid var(--border);}
+  #agenda-overlay .ag-day-col:last-child{border-right:none;}
+  #agenda-overlay .ag-day-hdr{padding:7px 4px;text-align:center;border-bottom:1px solid var(--border);background:var(--bg);}
+  #agenda-overlay .ag-day-hdr-name{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--light);}
+  #agenda-overlay .ag-day-hdr-num{font-size:15px;font-weight:800;color:var(--cobalt);line-height:1.3;}
+  #agenda-overlay .ag-day-col.is-today .ag-day-hdr{background:var(--apl);}
+  #agenda-overlay .ag-day-col.is-today .ag-day-hdr-name,#agenda-overlay .ag-day-col.is-today .ag-day-hdr-num{color:var(--accent);}
+  #agenda-overlay .ag-day-slots{padding:4px 3px;min-height:90px;}
+  #agenda-overlay .ag-slot{border-radius:6px;margin-bottom:3px;padding:4px 5px;font-size:10px;cursor:pointer;border:1.5px dashed var(--border);color:var(--light);transition:all .12s;display:flex;align-items:center;gap:3px;min-height:22px;}
+  #agenda-overlay .ag-slot:hover{border-color:var(--accent);color:var(--accent);background:var(--apl);}
+  #agenda-overlay .ag-slot.occ{border-style:solid;border-color:var(--accent);background:var(--apl);color:var(--adk);cursor:default;}
+  #agenda-overlay .ag-slot.occ.ghost{border-style:dashed;border-color:var(--border);background:transparent;opacity:.4;cursor:default;}
+  #agenda-overlay .ag-slot.occ.ghost .ag-slot-t{color:var(--light);}
+  #agenda-overlay .ag-slot.occ.ghost .ag-slot-n{text-decoration:line-through;color:var(--light);}
+  #agenda-overlay .ag-slot.occ.ghost .ag-slot-x{display:none;}
+  #agenda-overlay .ag-slot.conflict{border-color:var(--danger)!important;background:var(--rpl)!important;color:var(--danger)!important;}
+  #agenda-overlay .ag-slot-t{font-size:9px;font-weight:800;color:var(--light);flex-shrink:0;min-width:24px;}
+  #agenda-overlay .ag-slot.occ .ag-slot-t{color:var(--adk);}
+  #agenda-overlay .ag-slot-n{font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  #agenda-overlay .ag-slot-x{background:none;border:none;cursor:pointer;color:transparent;font-size:10px;padding:0;flex-shrink:0;}
+  #agenda-overlay .ag-slot.occ:hover .ag-slot-x{color:var(--danger);}
+  #agenda-overlay .ag-foot{padding:7px 16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg);}
+  #agenda-overlay .ag-foot-txt{font-size:11px;color:var(--light);}
+  #agenda-overlay #ag-total-hoy-lbl{font-size:11px;font-weight:700;color:var(--cobalt);}
+  /* Hoy lista */
+  #agenda-overlay .ag-hoy-item{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--border);}
+  #agenda-overlay .ag-hoy-item:last-child{border-bottom:none;}
+  #agenda-overlay .ag-hoy-hora{font-size:11px;font-weight:800;color:var(--accent);width:38px;flex-shrink:0;text-align:center;background:var(--apl);border-radius:6px;padding:2px 3px;}
+  #agenda-overlay .ag-hoy-hora.aplazada-hora{background:var(--ypl);color:#92400E;}
+  #agenda-overlay .ag-hoy-hora.cancelada-hora{background:var(--bg);color:var(--light);}
+  #agenda-overlay .ag-hoy-info{flex:1;min-width:0;}
+  #agenda-overlay .ag-hoy-nombre{font-size:12px;font-weight:700;color:var(--brown);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  #agenda-overlay .ag-hoy-sub{font-size:10px;color:var(--light);margin-top:1px;}
+  #agenda-overlay .ag-hoy-item.ghost-item{opacity:.45;}
+  #agenda-overlay .ag-hoy-item.ghost-item .ag-hoy-nombre{text-decoration:line-through;}
+  #agenda-overlay .ag-est-sel{padding:3px 5px;border-radius:6px;font-size:10px;font-weight:700;border:1.5px solid var(--border);background:var(--bg);color:var(--mid);cursor:pointer;font-family:inherit;outline:none;}
+  #agenda-overlay .ag-est-sel.asistio{border-color:#16A34A;background:#DCFCE7;color:#16A34A;}
+  #agenda-overlay .ag-est-sel.no-asistio{border-color:var(--danger);background:var(--rpl);color:var(--danger);}
+  #agenda-overlay .ag-est-sel.aplazada{border-color:var(--yellow);background:var(--ypl);color:#92400E;}
+  #agenda-overlay .ag-est-sel.cancelada{border-color:var(--light);background:var(--bg);color:var(--light);}
+  #agenda-overlay .ag-hoy-del{background:none;border:none;cursor:pointer;color:var(--light);font-size:12px;padding:0 2px;display:flex;align-items:center;}
+  #agenda-overlay .ag-hoy-del:hover{color:var(--danger);}
+  #agenda-overlay .ag-empty-hoy{text-align:center;padding:24px 0;color:var(--light);font-size:12px;font-weight:500;}
+  /* Stats */
+  #agenda-overlay .ag-stats-card{background:var(--surface);border-radius:13px;border:1.5px solid var(--border);overflow:hidden;margin-bottom:14px;}
+  #agenda-overlay #ag-stats-body{padding:14px 18px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  @media(max-width:560px){#agenda-overlay #ag-stats-body{grid-template-columns:repeat(2,1fr);}}
+  #agenda-overlay .ag-stat-block{text-align:center;}
+  #agenda-overlay .ag-stat-bar-wrap{height:4px;background:var(--border);border-radius:3px;margin:6px 0 3px;overflow:hidden;}
+  #agenda-overlay .ag-stat-bar{height:4px;border-radius:3px;transition:width .7s ease;}
+  #agenda-overlay .ag-stat-num{font-size:22px;font-weight:800;line-height:1;}
+  #agenda-overlay .ag-stat-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
+  #agenda-overlay .ag-stat-pct{font-size:10px;font-weight:600;color:var(--light);}
+  /* Modal */
+  #ag-modal-wrap{display:none;position:fixed;inset:0;background:rgba(10,20,40,.45);z-index:900;align-items:center;justify-content:center;padding:20px;}
+  #ag-modal-wrap.open{display:flex;}
+  #ag-modal-box{background:#fff;border-radius:16px;padding:22px;width:100%;max-width:360px;box-shadow:0 24px 60px rgba(0,0,0,.2);}
+  #ag-modal-box h3{font-size:14px;font-weight:800;color:var(--cobalt);margin-bottom:2px;}
+  #ag-modal-sub{font-size:12px;color:var(--mid);margin-bottom:14px;font-weight:500;}
+  .ag-mf{margin-bottom:11px;position:relative;}
+  .ag-mf label{display:block;font-size:10px;font-weight:800;color:var(--mid);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
+  .ag-mf input,.ag-mf select{width:100%;padding:8px 11px;border:1.5px solid var(--border);border-radius:9px;font-size:13px;outline:none;font-family:inherit;color:var(--brown);background:#fff;}
+  .ag-mf input:focus,.ag-mf select:focus{border-color:var(--accent);}
+  #ag-pac-sugeridos{display:none;position:absolute;left:0;right:0;top:100%;border:1.5px solid var(--accent);border-radius:9px;background:#fff;max-height:140px;overflow-y:auto;z-index:50;box-shadow:0 4px 16px rgba(0,0,0,.1);}
+  .ag-pac-sug{padding:7px 11px;cursor:pointer;font-size:12px;font-weight:600;color:var(--brown);border-bottom:1px solid var(--border);}
+  .ag-pac-sug:last-child{border-bottom:none;}
+  .ag-pac-sug:hover{background:var(--apl);color:var(--accent);}
+  .ag-pac-sug-hc{font-size:10px;color:var(--light);font-weight:500;}
+  #ag-modal-conflict{display:none;background:var(--rpl);color:var(--danger);font-size:12px;padding:7px 11px;border-radius:8px;margin-bottom:9px;font-weight:600;}
+  #ag-aplazar-panel{display:none;background:var(--bg);border-radius:9px;padding:11px;margin-bottom:11px;border:1px solid var(--border);}
+  #ag-aplazar-panel label{font-size:10px;font-weight:800;color:var(--mid);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:5px;}
+  .ag-aplazar-row{display:flex;gap:6px;align-items:center;}
+  .ag-aplazar-row input,.ag-aplazar-row select{flex:1;padding:6px 9px;border:1.5px solid var(--border);border-radius:7px;font-size:12px;font-family:inherit;outline:none;color:var(--brown);background:#fff;}
+  .ag-aplazar-row input:focus,.ag-aplazar-row select:focus{border-color:var(--accent);}
+  .ag-btn-apl-ok{padding:6px 11px;background:var(--yellow);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;}
+  .ag-modal-actions{display:flex;gap:8px;margin-top:4px;}
+  .ag-btn-cancel{flex:0;padding:9px 13px;background:var(--bg);color:var(--mid);border:1.5px solid var(--border);border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+  .ag-btn-confirm{flex:1;padding:9px;background:linear-gradient(135deg,var(--cobalt),var(--accent));color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
+  .ag-btn-confirm:hover{opacity:.9;}
+  </style>
+
+  <!-- Top bar de agenda -->
+  <div class="ag-topbar">
+    <div class="ag-tb-left">
+      <svg viewBox="0 0 54 54" fill="none" xmlns="http://www.w3.org/2000/svg" width="30" height="30">
+        <rect width="54" height="54" rx="12" fill="#0891B2"/>
+        <path d="M10 27 L18 14 L24 27 L30 10 L36 27 L42 20" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <circle cx="27" cy="40" r="4" fill="rgba(255,255,255,0.3)"/>
+        <circle cx="27" cy="40" r="2" fill="#fff"/>
+      </svg>
+      <span class="ag-tb-name">MedHC — Agenda y Dashboard</span>
+    </div>
+    <button onclick="closeAgenda()" style="padding:6px 13px;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">✕ Cerrar</button>
+  </div>
+
+  <!-- Contenido -->
+  <div style="max-width:1100px;margin:0 auto;padding:18px 18px 48px;">
+
+    <!-- Banner -->
+    <div class="ag-banner">
+      <div>
+        <div class="ag-greeting" id="ag-greeting"></div>
+        <div class="ag-fecha" id="ag-fecha"></div>
+        <div class="ag-bstats">
+          <div class="ag-bstat"><div class="ag-bstat-num" id="ag-st-total">0</div><div class="ag-bstat-lbl">Historias</div></div>
+          <div class="ag-bstat"><div class="ag-bstat-num" id="ag-st-hoy">0</div><div class="ag-bstat-lbl">Consultas hoy</div></div>
+          <div class="ag-bstat"><div class="ag-bstat-num" id="ag-st-semana">0</div><div class="ag-bstat-lbl">Esta semana</div></div>
+        </div>
+      </div>
+      <div style="opacity:.1;flex-shrink:0;">
+        <svg width="68" height="68" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </div>
+    </div>
+
+    <!-- Grid principal -->
+    <div class="ag-main-grid">
+
+      <!-- Agenda semanal -->
+      <div class="ag-card">
+        <div class="ag-card-hdr">
+          <div class="ag-card-title">Agenda semanal</div>
+          <div class="ag-controls">
+            <div style="display:flex;align-items:center;gap:5px">
+              <span style="font-size:11px;color:var(--mid);font-weight:600">Duración:</span>
+              <select class="ag-dur-sel" onchange="agCambiarDuracion(this.value)">
+                <option value="30">30 min</option><option value="45">45 min</option>
+                <option value="60" selected>60 min</option><option value="90">90 min</option>
+                <option value="120">120 min</option>
+              </select>
+            </div>
+            <div class="ag-week-nav">
+              <button onclick="agCambiarSemana(-1)">‹</button>
+              <span id="ag-semana-lbl"></span>
+              <button onclick="agCambiarSemana(1)">›</button>
+              <button onclick="agIrHoy()" style="font-size:10px;padding:3px 6px">Hoy</button>
+            </div>
+          </div>
+        </div>
+        <div id="ag-days-wrap"><div id="ag-days-grid"></div></div>
+        <div class="ag-foot">
+          <span class="ag-foot-txt">Selecciona un horario libre para agendar</span>
+          <span id="ag-total-hoy-lbl"></span>
+        </div>
+      </div>
+
+      <!-- Consultas de hoy -->
+      <div class="ag-card">
+        <div class="ag-card-hdr">
+          <div class="ag-card-title">Consultas de hoy</div>
+          <button class="ag-card-action" onclick="agAbrirModal(null,null,true)">+ Imprevisto</button>
+        </div>
+        <div class="ag-card-body" id="ag-hoy-lista"></div>
+      </div>
+
+    </div>
+
+    <!-- Estadísticas de asistencia -->
+    <div class="ag-stats-card">
+      <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <div class="ag-card-title">Estadísticas de asistencia</div>
+        <select id="ag-stats-periodo" onchange="agRenderStats()" style="padding:4px 8px;border:1.5px solid var(--border);border-radius:7px;font-size:11px;font-weight:700;color:var(--cobalt);background:#fff;cursor:pointer;outline:none;font-family:inherit;">
+          <option value="7">Últimos 7 días</option>
+          <option value="30" selected>Últimos 30 días</option>
+          <option value="90">Últimos 90 días</option>
+          <option value="365">Este año</option>
+          <option value="0">Todo el tiempo</option>
+        </select>
+      </div>
+      <div id="ag-stats-body">
+        <div class="ag-stat-block">
+          <div class="ag-stat-num" id="ag-s-total" style="color:var(--cobalt)">—</div>
+          <div class="ag-stat-lbl" style="color:var(--cobalt)">Total</div>
+          <div class="ag-stat-bar-wrap"><div class="ag-stat-bar" id="ag-sb-total" style="background:var(--cobalt);width:100%"></div></div>
+          <div class="ag-stat-pct" id="ag-sp-total">consultas</div>
+        </div>
+        <div class="ag-stat-block">
+          <div class="ag-stat-num" id="ag-s-asistio" style="color:#16A34A">—</div>
+          <div class="ag-stat-lbl" style="color:#16A34A">Asistió</div>
+          <div class="ag-stat-bar-wrap"><div class="ag-stat-bar" id="ag-sb-asistio" style="background:#16A34A"></div></div>
+          <div class="ag-stat-pct" id="ag-sp-asistio">—</div>
+        </div>
+        <div class="ag-stat-block">
+          <div class="ag-stat-num" id="ag-s-noasistio" style="color:var(--danger)">—</div>
+          <div class="ag-stat-lbl" style="color:var(--danger)">No asistió</div>
+          <div class="ag-stat-bar-wrap"><div class="ag-stat-bar" id="ag-sb-noasistio" style="background:var(--danger)"></div></div>
+          <div class="ag-stat-pct" id="ag-sp-noasistio">—</div>
+        </div>
+        <div class="ag-stat-block">
+          <div class="ag-stat-num" id="ag-s-aplazada" style="color:var(--yellow)">—</div>
+          <div class="ag-stat-lbl" style="color:#92400E">Aplazada</div>
+          <div class="ag-stat-bar-wrap"><div class="ag-stat-bar" id="ag-sb-aplazada" style="background:var(--yellow)"></div></div>
+          <div class="ag-stat-pct" id="ag-sp-aplazada">—</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /inner -->
+</div><!-- /agenda-overlay -->
+
+<!-- Modal de agenda -->
+<div id="ag-modal-wrap">
+  <div id="ag-modal-box">
+    <h3 id="ag-modal-ttl">Nueva consulta</h3>
+    <div id="ag-modal-sub" style="font-size:12px;color:var(--mid);margin-bottom:14px;font-weight:500;"></div>
+    <div class="ag-mf">
+      <label>Paciente</label>
+      <input id="ag-m-nombre" type="text" placeholder="Nombre o busca historia existente..." autocomplete="off" oninput="agBuscarPac(this.value)"/>
+      <div id="ag-pac-sugeridos"></div>
+    </div>
+    <div class="ag-mf" id="ag-hora-field">
+      <label>Hora</label>
+      <select id="ag-m-hora"></select>
+    </div>
+    <div id="ag-modal-conflict"></div>
+    <div id="ag-aplazar-panel">
+      <label>Reagendar para</label>
+      <div class="ag-aplazar-row">
+        <input type="date" id="ag-apl-fecha" oninput="agPoblarHorasApl(this.value)"/>
+        <select id="ag-apl-hora"></select>
+        <button class="ag-btn-apl-ok" onclick="agConfirmarAplazar()">✓</button>
+      </div>
+    </div>
+    <div class="ag-modal-actions">
+      <button class="ag-btn-cancel" onclick="agCerrarModal()">Cancelar</button>
+      <button class="ag-btn-confirm" id="ag-btn-confirm-m" onclick="agConfirmarCita()">Confirmar consulta</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const AG_KEY='medhc_agenda_v1';
+  const AG_H_INI=8, AG_H_FIN=20;
+  const AG_DIAS_S=["Lun","Mar","Mié","Jue","Vie","Sáb"];
+  let agAgenda={}, agDur=60, agSemOff=0, agMDia=null, agMEditIdx=null;
+
+  function agCargar(){try{const s=localStorage.getItem(AG_KEY);if(s)agAgenda=JSON.parse(s);}catch(e){agAgenda={};}}
+  function agGuardar(){localStorage.setItem(AG_KEY,JSON.stringify(agAgenda));}
+  function agFk(d){return d.toISOString().split("T")[0];}
+  function agHk(){return agFk(new Date());}
+  function agFmtH(m){const h=Math.floor(m/60),mn=m%60,ap=h>=12?"PM":"AM",h12=h>12?h-12:h===0?12:h;return h12+":"+(mn===0?"00":mn<10?"0"+mn:mn)+" "+ap;}
+  function agFmtHC(m){const h=Math.floor(m/60),mn=m%60;return h+":"+(mn===0?"00":mn<10?"0"+mn:mn);}
+  function agGetLunes(off){const hoy=new Date(),d=hoy.getDay()||7,l=new Date(hoy);l.setDate(hoy.getDate()-(d-1)+off*7);l.setHours(0,0,0,0);return l;}
+  function agEsGhost(s){return s.estado==="aplazada"||s.estado==="cancelada";}
+  function agChoca(dk,ini,dr,ex){return(agAgenda[dk]||[]).some((s,i)=>{if(i===ex||agEsGhost(s))return false;return ini<s.horaInicio+s.duracion&&ini+dr>s.horaInicio;});}
+  function agChicaInfo(dk,ini,dr,ex){return(agAgenda[dk]||[]).find((s,i)=>{if(i===ex||agEsGhost(s))return false;return ini<s.horaInicio+s.duracion&&ini+dr>s.horaInicio;});}
+
+  function agGetPacs(){
+    try{
+      const raw=localStorage.getItem('medhc_patients')||localStorage.getItem('patients')||'[]';
+      return JSON.parse(raw).map(p=>({nombre:(p.name||p.nombre||'').trim(),hcCode:p.hcCode||p.codigo||'',tipo:p.tipo||''}));
+    }catch(e){return[];}
+  }
+
+  window.openAgenda=function(){
+    agCargar();
+    const overlay=document.getElementById('agenda-overlay');
+    overlay.style.display='block';
+    agInitBanner();
+    agRenderAgenda();
+    agRenderStats();
+    agRenderHoy();
+  };
+  window.closeAgenda=function(){
+    document.getElementById('agenda-overlay').style.display='none';
+  };
+
+  function agInitBanner(){
+    const a=new Date(),h=a.getHours();
+    const sal=h<12?"Buenos días":h<18?"Buenas tardes":"Buenas noches";
+    document.getElementById('ag-greeting').textContent=sal+" — MedHC";
+    document.getElementById('ag-fecha').textContent=a.toLocaleDateString("es-ES",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+    const pacs=agGetPacs();
+    document.getElementById('ag-st-total').textContent=pacs.length;
+    agActualizarStatHoy();
+    // contar esta semana
+    const lunes=agGetLunes(0),fin=new Date(lunes);fin.setDate(fin.getDate()+5);
+    let semCount=0;
+    for(let dk in agAgenda){const f=new Date(dk+"T00:00:00");if(f>=lunes&&f<=fin)semCount+=(agAgenda[dk]||[]).length;}
+    document.getElementById('ag-st-semana').textContent=semCount;
+  }
+
+  function agActualizarStatHoy(){
+    const n=(agAgenda[agHk()]||[]).length;
+    document.getElementById('ag-st-hoy').textContent=n;
+    document.getElementById('ag-total-hoy-lbl').textContent=n+" consulta"+(n!==1?"s":"")+" hoy";
+  }
+
+  window.agRenderHoy=function(){
+    const el=document.getElementById('ag-hoy-lista');
+    const citas=(agAgenda[agHk()]||[]).slice().sort((a,b)=>a.horaInicio-b.horaInicio);
+    if(!citas.length){el.innerHTML='<div class="ag-empty-hoy"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="1.5" style="display:block;margin:0 auto 7px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Sin consultas agendadas hoy</div>';return;}
+    el.innerHTML=citas.map((c,i)=>{
+      const est=c.estado||"";
+      const cls=est?(" "+est):"";
+      const isGh=est==="aplazada"||est==="cancelada";
+      const horaCls=est==="aplazada"?" aplazada-hora":est==="cancelada"?" cancelada-hora":"";
+      return `<div class="ag-hoy-item${isGh?" ghost-item":""}">
+        <div class="ag-hoy-hora${horaCls}">${agFmtHC(c.horaInicio)}</div>
+        <div class="ag-hoy-info">
+          <div class="ag-hoy-nombre">${c.nombre}</div>
+          <div class="ag-hoy-sub">${c.hcCode?c.hcCode+" · ":""}${agFmtH(c.horaInicio)}–${agFmtH(c.horaInicio+c.duracion)}</div>
+        </div>
+        <select class="ag-est-sel${cls}" onchange="agSetEstado('${agHk()}',${i},this)">
+          <option value="" ${!est?"selected":""}>Estado</option>
+          <option value="asistio" ${est==="asistio"?"selected":""}>Asistió</option>
+          <option value="no-asistio" ${est==="no-asistio"?"selected":""}>No asistió</option>
+          <option value="aplazada" ${est==="aplazada"?"selected":""}>Aplazar</option>
+          <option value="cancelada" ${est==="cancelada"?"selected":""}>Cancelada</option>
+        </select>
+        <button class="ag-hoy-del" onclick="agEliminar('${agHk()}',${i},event)" title="Eliminar">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>`;
+    }).join("");
+  };
+
+  window.agSetEstado=function(dk,idx,sel){
+    const v=sel.value;
+    sel.className="ag-est-sel"+(v?" "+v:"");
+    if(v==="aplazada"){agAbrirAplazar(dk,idx);sel.value=agAgenda[dk][idx].estado||"";return;}
+    if(agAgenda[dk]&&agAgenda[dk][idx]){agAgenda[dk][idx].estado=v;agGuardar();}
+    agRenderHoy();agRenderAgenda();
+  };
+
+  function agAbrirAplazar(dk,idx){
+    agMDia=dk;agMEditIdx=idx;
+    const c=agAgenda[dk][idx];
+    document.getElementById('ag-modal-ttl').textContent="Reagendar consulta";
+    document.getElementById('ag-modal-sub').textContent=c.nombre+" — "+agFmtH(c.horaInicio);
+    document.getElementById('ag-m-nombre').value=c.nombre;
+    document.getElementById('ag-m-nombre').disabled=true;
+    document.getElementById('ag-hora-field').style.display="none";
+    document.getElementById('ag-aplazar-panel').style.display="block";
+    document.getElementById('ag-btn-confirm-m').style.display="none";
+    document.getElementById('ag-modal-conflict').style.display="none";
+    const man=new Date();man.setDate(man.getDate()+1);
+    document.getElementById('ag-apl-fecha').min=agFk(man);
+    document.getElementById('ag-apl-fecha').value="";
+    document.getElementById('ag-apl-hora').innerHTML="";
+    document.getElementById('ag-modal-wrap').classList.add("open");
+  }
+
+  window.agPoblarHorasApl=function(dk2){
+    const sel=document.getElementById('ag-apl-hora');sel.innerHTML="";
+    for(let m=AG_H_INI*60;m+agDur<=AG_H_FIN*60;m+=15){
+      const conf=agChoca(dk2,m,agDur,-1);
+      const o=document.createElement("option");o.value=m;
+      o.textContent=agFmtH(m)+(conf?" — Ocupado":"");o.disabled=conf;
+      sel.appendChild(o);
+    }
+  };
+
+  window.agConfirmarAplazar=function(){
+    const f=document.getElementById('ag-apl-fecha').value;
+    const h=parseInt(document.getElementById('ag-apl-hora').value);
+    if(!f){alert("Elige una fecha");return;}
+    if(agChoca(f,h,agDur,-1)){alert("Conflicto de horario. Elige otra hora.");return;}
+    const c={...agAgenda[agMDia][agMEditIdx]};
+    agAgenda[agMDia][agMEditIdx].estado="aplazada";
+    if(!agAgenda[f])agAgenda[f]=[];
+    agAgenda[f].push({...c,horaInicio:h,duracion:agDur,estado:"",reagendada:true});
+    agGuardar();agCerrarModal();agRenderAgenda();agRenderHoy();agActualizarStatHoy();
+  };
+
+  window.agRenderAgenda=function(){
+    const lunes=agGetLunes(agSemOff);
+    const fin=new Date(lunes);fin.setDate(fin.getDate()+5);
+    const op={day:"numeric",month:"short"};
+    document.getElementById('ag-semana-lbl').textContent=lunes.toLocaleDateString("es-ES",op)+" – "+fin.toLocaleDateString("es-ES",op);
+    const hoy=agHk(),grid=document.getElementById('ag-days-grid');grid.innerHTML="";
+    for(let di=0;di<6;di++){
+      const f=new Date(lunes);f.setDate(lunes.getDate()+di);
+      const dk=agFk(f),esH=dk===hoy;
+      const slots=(agAgenda[dk]||[]).slice().sort((a,b)=>a.horaInicio-b.horaInicio);
+      const col=document.createElement("div");
+      col.className="ag-day-col"+(esH?" is-today":"");
+      col.innerHTML=`<div class="ag-day-hdr"><div class="ag-day-hdr-name">${AG_DIAS_S[di]}</div><div class="ag-day-hdr-num">${f.getDate()}</div></div><div class="ag-day-slots" id="ag-ds-${dk}"></div>`;
+      grid.appendChild(col);
+      const sl=col.querySelector(`#ag-ds-${dk}`);
+      slots.forEach((s,i)=>{
+        const conf=agChoca(dk,s.horaInicio,s.duracion,i);
+        const isGhost=s.estado==="aplazada"||s.estado==="cancelada";
+        const d2=document.createElement("div");
+        d2.className="ag-slot occ"+(conf&&!isGhost?" conflict":"")+(isGhost?" ghost":"");
+        const lbl=isGhost?`<span style="font-size:8px;font-weight:800;text-transform:uppercase;color:var(--light);flex-shrink:0">${s.estado==="aplazada"?"APL":"CAN"}</span>`:"";
+        d2.innerHTML=`<span class="ag-slot-t">${agFmtHC(s.horaInicio)}</span><span class="ag-slot-n">${s.nombre}</span>${lbl}<button class="ag-slot-x" onclick="agEliminar('${dk}',${i},event)">✕</button>`;
+        sl.appendChild(d2);
+      });
+      const add=document.createElement("div");
+      add.className="ag-slot";
+      add.innerHTML=`<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span class="ag-slot-n" style="font-size:10px">Agendar</span>`;
+      add.onclick=()=>agAbrirModal(dk,f,false);
+      sl.appendChild(add);
+    }
+    agActualizarStatHoy();agRenderHoy();
+  };
+
+  window.agAbrirModal=function(dk,fecha,imprevisto){
+    agMDia=dk||agHk();agMEditIdx=null;
+    document.getElementById('ag-modal-ttl').textContent=imprevisto?"Consulta imprevista — hoy":"Nueva consulta";
+    const f2=fecha||new Date();
+    document.getElementById('ag-modal-sub').textContent=f2.toLocaleDateString("es-ES",{weekday:"long",day:"numeric",month:"long"});
+    document.getElementById('ag-m-nombre').value="";document.getElementById('ag-m-nombre').disabled=false;
+    document.getElementById('ag-pac-sugeridos').style.display="none";
+    document.getElementById('ag-modal-conflict').style.display="none";
+    document.getElementById('ag-aplazar-panel').style.display="none";
+    document.getElementById('ag-hora-field').style.display="";
+    document.getElementById('ag-btn-confirm-m').style.display="";
+    agPoblarHoras(agMDia);
+    document.getElementById('ag-modal-wrap').classList.add("open");
+    setTimeout(()=>document.getElementById('ag-m-nombre').focus(),100);
+  };
+
+  function agPoblarHoras(dk){
+    const sel=document.getElementById('ag-m-hora');sel.innerHTML="";
+    let pf=true;
+    for(let m=AG_H_INI*60;m+agDur<=AG_H_FIN*60;m+=15){
+      const conf=agChoca(dk,m,agDur,-1);
+      const o=document.createElement("option");o.value=m;
+      o.textContent=agFmtH(m)+(conf?" — Ocupado":"");o.disabled=conf;
+      if(!conf&&pf){o.selected=true;pf=false;}
+      sel.appendChild(o);
+    }
+  }
+
+  window.agCerrarModal=function(){
+    document.getElementById('ag-modal-wrap').classList.remove("open");
+    document.getElementById('ag-pac-sugeridos').style.display="none";
+    agMDia=null;agMEditIdx=null;
+  };
+
+  window.agConfirmarCita=function(){
+    const nombre=document.getElementById('ag-m-nombre').value.trim();
+    const hi=parseInt(document.getElementById('ag-m-hora').value);
+    const cel=document.getElementById('ag-modal-conflict');
+    if(!nombre){document.getElementById('ag-m-nombre').focus();return;}
+    const conf=agChicaInfo(agMDia,hi,agDur,-1);
+    if(conf){cel.style.display="block";cel.textContent="Conflicto con "+conf.nombre+" ("+agFmtH(conf.horaInicio)+"). Elige otra hora.";return;}
+    cel.style.display="none";
+    const pacs=agGetPacs();
+    const pac=pacs.find(p=>p.nombre.toLowerCase()===nombre.toLowerCase());
+    if(!agAgenda[agMDia])agAgenda[agMDia]=[];
+    agAgenda[agMDia].push({nombre,horaInicio:hi,duracion:agDur,estado:"",hcCode:pac?pac.hcCode:""});
+    agGuardar();agCerrarModal();agRenderAgenda();agRenderHoy();agActualizarStatHoy();
+  };
+
+  window.agBuscarPac=function(q){
+    const box=document.getElementById('ag-pac-sugeridos');
+    if(!q.trim()){box.style.display="none";return;}
+    const pacs=agGetPacs();
+    const res=pacs.filter(p=>p.nombre.toLowerCase().includes(q.toLowerCase())||p.hcCode.toLowerCase().includes(q.toLowerCase())).slice(0,5);
+    if(!res.length){box.style.display="none";return;}
+    box.innerHTML=res.map(p=>`<div class="ag-pac-sug" onclick="agSelPac('${p.nombre.replace(/'/g,"\\'")}')"><div>${p.nombre}</div><div class="ag-pac-sug-hc">${p.hcCode} · ${p.tipo}</div></div>`).join("");
+    box.style.display="block";
+  };
+
+  window.agSelPac=function(nombre){
+    document.getElementById('ag-m-nombre').value=nombre;
+    document.getElementById('ag-pac-sugeridos').style.display="none";
+  };
+
+  window.agEliminar=function(dk,idx,e){
+    if(e)e.stopPropagation();
+    if(!confirm("¿Eliminar esta consulta?"))return;
+    agAgenda[dk].splice(idx,1);
+    if(!agAgenda[dk].length)delete agAgenda[dk];
+    agGuardar();agRenderAgenda();agRenderHoy();agActualizarStatHoy();
+  };
+
+  window.agCambiarDuracion=function(v){agDur=parseInt(v);agRenderAgenda();};
+  window.agCambiarSemana=function(d){agSemOff+=d;agRenderAgenda();};
+  window.agIrHoy=function(){agSemOff=0;agRenderAgenda();};
+
+  window.agRenderStats=function(){
+    const dias=parseInt(document.getElementById('ag-stats-periodo').value);
+    const ahora=new Date();
+    let total=0,asistio=0,noasistio=0,aplazada=0;
+    Object.keys(agAgenda).forEach(dk=>{
+      const fecha=new Date(dk+"T00:00:00");
+      const diffDias=Math.round((ahora-fecha)/(1000*60*60*24));
+      if(dias>0&&diffDias>dias)return;
+      (agAgenda[dk]||[]).forEach(c=>{
+        total++;
+        if(c.estado==="asistio")asistio++;
+        else if(c.estado==="no-asistio")noasistio++;
+        else if(c.estado==="aplazada")aplazada++;
+      });
+    });
+    const pct=(n)=>total>0?Math.round(n/total*100):0;
+    document.getElementById('ag-s-total').textContent=total;
+    document.getElementById('ag-sp-total').textContent="consultas registradas";
+    document.getElementById('ag-sb-total').style.width="100%";
+    [["asistio",asistio],["noasistio",noasistio],["aplazada",aplazada]].forEach(([id,val])=>{
+      document.getElementById("ag-s-"+id).textContent=val;
+      document.getElementById("ag-sb-"+id).style.width=pct(val)+"%";
+      document.getElementById("ag-sp-"+id).textContent=pct(val)+"%";
+    });
+  };
+
+  // Cerrar modal al click fuera
+  document.addEventListener('DOMContentLoaded',()=>{
+    document.getElementById('ag-modal-wrap').addEventListener('click',e=>{if(e.target===document.getElementById('ag-modal-wrap'))agCerrarModal();});
+    document.addEventListener('keydown',e=>{
+      if(e.key==="Escape"&&document.getElementById('ag-modal-wrap').classList.contains("open"))agCerrarModal();
+    });
+    document.addEventListener('click',e=>{
+      if(!e.target.closest('#ag-m-nombre')&&!e.target.closest('#ag-pac-sugeridos'))document.getElementById('ag-pac-sugeridos').style.display='none';
+    });
+  });
+
+})();
+</script>
 
 <!-- ── DICTADO FLOTANTE MEDHC ── -->
 <button id="medhc-mic" title="Díctale a MedHC" aria-label="Díctale a MedHC">
