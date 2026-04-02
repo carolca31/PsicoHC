@@ -168,40 +168,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 #monto-input:focus{border-color:var(--accent);}
 .btn-monto-ok{width:100%;padding:13px;background:linear-gradient(135deg,var(--cobalt),var(--accent));color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;}
 
-/* ── ASISTENTE IA ── */
-#ai-panel{position:fixed;bottom:calc(var(--nav-h) + 12px);right:12px;width:calc(100vw - 24px);max-width:380px;height:520px;background:#fff;border-radius:20px;box-shadow:0 8px 40px rgba(26,58,110,.22);display:flex;flex-direction:column;z-index:500;transform:translateY(20px) scale(0.95);opacity:0;pointer-events:none;transition:all .25s cubic-bezier(.34,1.56,.64,1);overflow:hidden;border:1.5px solid var(--border);}
-#ai-panel.open{transform:translateY(0) scale(1);opacity:1;pointer-events:all;}
-#ai-header{background:linear-gradient(135deg,var(--cobalt),var(--accent));padding:14px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
-.ai-header-info{display:flex;align-items:center;gap:10px;}
-.ai-avatar{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:16px;}
-.ai-title{font-size:13px;font-weight:800;color:#fff;}
-.ai-sub{font-size:10px;color:rgba(255,255,255,.6);font-weight:500;}
-.ai-close{background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:8px;padding:6px 8px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:700;}
-.ai-close:hover{background:rgba(255,255,255,.25);}
-#ai-messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth;}
-#ai-messages::-webkit-scrollbar{width:4px;}
-#ai-messages::-webkit-scrollbar-track{background:transparent;}
-#ai-messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
-.ai-msg{max-width:88%;padding:10px 13px;border-radius:14px;font-size:12.5px;line-height:1.55;word-break:break-word;}
-.ai-msg.bot{background:var(--apl);color:var(--brown);border-bottom-left-radius:4px;align-self:flex-start;}
-.ai-msg.bot p{margin:0 0 6px;}
-.ai-msg.bot p:last-child{margin-bottom:0;}
-.ai-msg.bot ul{margin:4px 0;padding-left:16px;}
-.ai-msg.bot li{margin-bottom:2px;}
-.ai-msg.user{background:linear-gradient(135deg,var(--cobalt),var(--accent));color:#fff;border-bottom-right-radius:4px;align-self:flex-end;}
-.typing-indicator{display:flex;align-items:center;gap:4px;padding:12px 14px;}
-.typing-indicator span{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:typing .9s infinite;}
-.typing-indicator span:nth-child(2){animation-delay:.15s;}
-.typing-indicator span:nth-child(3){animation-delay:.3s;}
-@keyframes typing{0%,60%,100%{transform:translateY(0);opacity:.4;}30%{transform:translateY(-5px);opacity:1;}}
-#ai-inputbar{border-top:1.5px solid var(--border);padding:10px 12px;display:flex;align-items:flex-end;gap:8px;background:#fff;flex-shrink:0;}
-#ai-input{flex:1;border:1.5px solid var(--border);border-radius:12px;padding:8px 12px;font-size:13px;font-family:inherit;color:var(--brown);outline:none;resize:none;min-height:36px;max-height:100px;line-height:1.4;background:var(--bg);}
-#ai-input:focus{border-color:var(--accent);background:#fff;}
-#ai-send{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--cobalt),var(--accent));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .15s;}
-#ai-send:hover{opacity:.85;}
-#ai-send:disabled{opacity:.4;cursor:not-allowed;}
-.nav-item#ai-fab.active{color:var(--accent);}
-
 /* ── LOGIN OVERLAY ── */
 #login-overlay{position:fixed;inset:0;background:linear-gradient(135deg,var(--cobalt) 0%,#0891B2 100%);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0;}
 #login-box{background:#fff;border-radius:24px;padding:32px 28px;width:calc(100% - 48px);max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.3);}
@@ -382,12 +348,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
     <span class="nav-label">Stats</span>
   </button>
-  <!-- IA nav item oculto para activar después
-  <button class="nav-item" onclick="toggleChat()" id="ai-fab">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-    <span class="nav-label">IA</span>
-  </button>
-  -->
 </nav>
 
 <!-- AGENDA -->
@@ -545,30 +505,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
       <input id="monto-input" type="number" placeholder="0" min="0"/>
     </div>
     <button class="btn-monto-ok" onclick="confirmarPago()">Confirmar pago</button>
-  </div>
-</div>
-
-
-<!-- ASISTENTE IA -->
-<div id="ai-panel">
-  <div id="ai-header">
-    <div class="ai-header-info">
-      <div class="ai-avatar">🤖</div>
-      <div>
-        <div class="ai-title">Asistente MedHC</div>
-        <div class="ai-sub">Powered by Claude AI</div>
-      </div>
-    </div>
-    <button class="ai-close" onclick="toggleChat()">✕</button>
-  </div>
-  <div id="ai-messages"></div>
-  <div id="ai-inputbar">
-    <textarea id="ai-input" placeholder="Pregúntame sobre tu agenda..." rows="1" 
-      oninput="resizeInput(this)"
-      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}"></textarea>
-    <button id="ai-send" onclick="sendMsg()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-    </button>
   </div>
 </div>
 
@@ -1334,143 +1270,6 @@ if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.
 }
 
 
-// ── ASISTENTE IA ──────────────────────────────────────────────────────────────
-let chatHistory = [];
-let chatOpen = false;
-
-function toggleChat() {
-  chatOpen = !chatOpen;
-  const panel = document.getElementById('ai-panel');
-  const fab = document.getElementById('ai-fab');
-  panel.classList.toggle('open', chatOpen);
-  fab.classList.toggle('active', chatOpen);
-  if (chatOpen && chatHistory.length === 0) {
-    setTimeout(() => addBotMsg(saludoInicial()), 300);
-  }
-  if (chatOpen) setTimeout(() => document.getElementById('ai-input').focus(), 350);
-}
-
-function saludoInicial() {
-  const prof = getProf().split(' ')[0];
-  const citasHoy = (agenda[hk()] || []).filter(c => c.estado !== 'cancelada' && c.estado !== 'aplazada');
-  const pendPago = Object.values(agenda).flat().filter(c => !c.pagado && c.estado === 'asistio').length;
-  let msg = '¡Hola, ' + prof + '! 👋 Soy tu asistente MedHC.\n\n';
-  if (citasHoy.length === 0) {
-    msg += 'Hoy no tienes consultas agendadas.';
-  } else {
-    msg += 'Hoy tienes **' + citasHoy.length + ' consulta' + (citasHoy.length > 1 ? 's' : '') + '**:\n';
-    citasHoy.sort((a,b) => a.horaInicio - b.horaInicio).forEach(c => {
-      msg += '- ' + fmtH(c.horaInicio) + ' — ' + c.nombre + '\n';
-    });
-  }
-  if (pendPago > 0) msg += '\n⚠️ Tienes **' + pendPago + ' sesión' + (pendPago > 1 ? 'es' : '') + '** sin cobrar.';
-  msg += '\n\nPuedes preguntarme: _¿qué tengo mañana?_, _¿cuánto cobré este mes?_, _¿quién debe dinero?_';
-  return msg;
-}
-
-function getContexto() {
-  const hoy = hk();
-  const ahora = new Date();
-  const manana = new Date(ahora); manana.setDate(ahora.getDate() + 1);
-  const mananaKey = fk(manana);
-  const citasHoy = (agenda[hoy] || []);
-  const citasManana = (agenda[mananaKey] || []);
-  const mes = ahora.getMonth(), anio = ahora.getFullYear();
-  let ingresosMes = 0;
-  const deudas = {};
-  Object.keys(agenda).forEach(dk => {
-    const f = new Date(dk + 'T00:00:00');
-    (agenda[dk] || []).forEach(c => {
-      if (c.estado === 'asistio') {
-        if (c.pagado && f.getMonth() === mes && f.getFullYear() === anio) ingresosMes += (c.monto || 0);
-        if (!c.pagado) deudas[c.nombre] = (deudas[c.nombre] || 0) + 1;
-      }
-    });
-  });
-  return 'CONTEXTO AGENDA DE ' + getProf().toUpperCase() + ' — ' + ahora.toLocaleDateString('es-ES', {weekday:'long',day:'numeric',month:'long',year:'numeric'}) + '\n\n' +
-    'CITAS HOY (' + hoy + '):\n' + (citasHoy.length === 0 ? 'Sin citas' : citasHoy.map(c => '- ' + fmtH(c.horaInicio) + ': ' + c.nombre + ' | Estado: ' + (c.estado||'pendiente') + ' | Pago: ' + (c.pagado ? '$'+c.monto : 'no cobrado')).join('\n')) + '\n\n' +
-    'CITAS MAÑANA (' + mananaKey + '):\n' + (citasManana.length === 0 ? 'Sin citas' : citasManana.map(c => '- ' + fmtH(c.horaInicio) + ': ' + c.nombre).join('\n')) + '\n\n' +
-    'INGRESOS ESTE MES: $' + ingresosMes.toLocaleString('es') + '\n\n' +
-    'PACIENTES SIN COBRAR:\n' + (Object.keys(deudas).length === 0 ? 'Ninguno' : Object.entries(deudas).map(([n,s]) => '- ' + n + ': ' + s + ' sesión' + (s>1?'es':'')).join('\n')) + '\n\n' +
-    'TOTAL PACIENTES: ' + PACS.length + ' | SESIONES MES: ' + contarSesionesMes() + '\n' +
-    'PACIENTES: ' + PACS.map(p => p.nombre + ' (' + p.tipo + ')').join(', ');
-}
-
-async function sendMsg() {
-  const input = document.getElementById('ai-input');
-  const txt = input.value.trim();
-  if (!txt) return;
-  input.value = '';
-  resizeInput(input);
-  addUserMsg(txt);
-  chatHistory.push({ role: 'user', content: txt });
-  showTyping();
-  document.getElementById('ai-send').disabled = true;
-  try {
-    const systemPrompt = 'Eres un asistente personal integrado en MedHC, app de gestión de consultas psicológicas. Responde siempre en español, de forma amable y concisa. Usa ** para negrita y - para listas. Aquí el contexto actual:\n\n' + getContexto();
-    const messages = chatHistory.slice(-10);
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, system: systemPrompt, messages })
-    });
-    const data = await resp.json();
-    removeTyping();
-    const reply = data.content?.[0]?.text || 'No pude procesar esa respuesta.';
-    chatHistory.push({ role: 'assistant', content: reply });
-    addBotMsg(reply);
-  } catch(e) {
-    removeTyping();
-    addBotMsg('Error al conectar. Verifica tu conexión.');
-  }
-  document.getElementById('ai-send').disabled = false;
-}
-
-function addUserMsg(txt) {
-  const box = document.getElementById('ai-messages');
-  const d = document.createElement('div');
-  d.className = 'ai-msg user';
-  d.textContent = txt;
-  box.appendChild(d);
-  box.scrollTop = box.scrollHeight;
-}
-
-function addBotMsg(md) {
-  const box = document.getElementById('ai-messages');
-  const d = document.createElement('div');
-  d.className = 'ai-msg bot';
-  d.innerHTML = renderMd(md);
-  box.appendChild(d);
-  box.scrollTop = box.scrollHeight;
-}
-
-function showTyping() {
-  const box = document.getElementById('ai-messages');
-  const d = document.createElement('div');
-  d.className = 'ai-msg bot typing-indicator';
-  d.id = 'ai-typing';
-  d.innerHTML = '<span></span><span></span><span></span>';
-  box.appendChild(d);
-  box.scrollTop = box.scrollHeight;
-}
-
-function removeTyping() {
-  const t = document.getElementById('ai-typing');
-  if (t) t.remove();
-}
-
-function renderMd(text) {
-  let html = text
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-    .replace(/_(.*?)_/g,'<em>$1</em>');
-  const lines = html.split('\n');
-  let result = '', inUl = false;
-  lines.forEach(line => {
-    if (line.startsWith('- ')) {
-      if (!inUl) { result += '<ul>'; inUl = true; }
-      result += '<li>' + line.slice(2) + '</li>';
-    } else {
-      if (inUl) { result += '</ul>'; inUl = false; }
-      if (line.trim() === '') result += '<br>';
-      else result +=
+</script>
+</body>
+</html>
