@@ -526,13 +526,8 @@ window.addEventListener('beforeinstallprompt',function(e){
   if(btn)btn.style.display='flex';
 });
 window.pwaBtnInstall=function(){
-  if(!_pwaPrompt)return;
-  _pwaPrompt.prompt();
-  _pwaPrompt.userChoice.then(function(){
-    _pwaPrompt=null;
-    var btn=document.getElementById('pwa-install-btn');
-    if(btn)btn.style.display='none';
-  });
+  // Redirigir a la PWA móvil para instalar desde allí
+  window.open('./MedHC_PWA.html','_blank');
 };
 window.addEventListener('appinstalled',function(){
   _pwaPrompt=null;
@@ -723,7 +718,7 @@ window.addEventListener('appinstalled',function(){
     <span style="display:flex;align-items:center;gap:8px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>Programas y Comunidades</span>
     <span style="font-size:10px;background:#EDE9FE;color:#7C3AED;padding:2px 7px;border-radius:10px;font-weight:800">Beta</span>
   </button>
-  <button id="pwa-install-btn" onclick="pwaBtnInstall()" style="display:none;width:calc(100% - 26px);margin:8px 13px 2px;padding:8px 10px;background:var(--apl);color:var(--accent);border:1.5px solid var(--accent);border-radius:9px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;align-items:center;justify-content:center;gap:6px;">
+  <button id="pwa-install-btn" onclick="pwaBtnInstall()" style="display:flex;width:calc(100% - 26px);margin:8px 13px 2px;padding:8px 10px;background:var(--apl);color:var(--accent);border:1.5px solid var(--accent);border-radius:9px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;align-items:center;justify-content:center;gap:6px;">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
     Instalar MedHC
   </button>

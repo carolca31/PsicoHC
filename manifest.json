@@ -2,7 +2,7 @@
   "name": "MedHC — Gestión de Consultas",
   "short_name": "MedHC",
   "description": "App de gestión de agenda y consultas psicológicas",
-  "start_url": "./app.html",
+  "start_url": "./MedHC_PWA.html",
   "display": "standalone",
   "background_color": "#0891B2",
   "theme_color": "#0891B2",
@@ -30,7 +30,7 @@
       "name": "Ver agenda de hoy",
       "short_name": "Hoy",
       "description": "Ir directamente a las citas de hoy",
-      "url": "./app.html#hoy"
+      "url": "./MedHC_PWA.html#hoy"
     }
   ]
 }

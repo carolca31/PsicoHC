@@ -7,6 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>MedHC — Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js" onerror="window.__firebaseFailed=true"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js" onerror="window.__firebaseFailed=true"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js" onerror="window.__firebaseFailed=true"></script>
 <link rel="manifest" href="manifest.json">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -166,14 +169,45 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 #monto-input{flex:1;padding:12px;border:1.5px solid var(--border);border-radius:10px;font-size:20px;font-weight:800;font-family:inherit;outline:none;color:var(--brown);text-align:right;}
 #monto-input:focus{border-color:var(--accent);}
 .btn-monto-ok{width:100%;padding:13px;background:linear-gradient(135deg,var(--cobalt),var(--accent));color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;}
+
+/* ── LOGIN OVERLAY ── */
+#login-overlay{position:fixed;inset:0;background:linear-gradient(135deg,var(--cobalt) 0%,#0891B2 100%);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;}
+#login-box{background:#fff;border-radius:24px;padding:32px 28px;width:calc(100% - 48px);max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:24px;}
+.login-logo-icon{width:44px;height:44px;border-radius:12px;background:var(--cobalt);display:flex;align-items:center;justify-content:center;}
+.login-title{font-size:20px;font-weight:800;color:var(--cobalt);}
+.login-sub{font-size:13px;color:var(--mid);margin-bottom:28px;line-height:1.5;}
+.btn-google{width:100%;padding:14px;background:#fff;border:2px solid var(--border);border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:10px;color:var(--brown);transition:border-color .15s,box-shadow .15s;}
+.btn-google:hover{border-color:var(--accent);box-shadow:0 2px 12px rgba(8,145,178,.15);}
+.login-offline{width:100%;margin-top:12px;padding:12px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--mid);}
+.login-error{display:none;background:var(--rpl);color:var(--danger);font-size:12px;padding:10px 12px;border-radius:8px;margin-top:12px;font-weight:600;}
 </style>
 </head>
 <body>
 
+<!-- LOGIN OVERLAY -->
+<div id="login-overlay">
+  <div id="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon">
+        <svg viewBox="0 0 54 54" fill="none" style="width:28px;height:28px"><rect width="54" height="54" rx="12" fill="#0891B2"/><path d="M10 27 L18 14 L24 27 L30 10 L36 27 L42 20" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="27" cy="40" r="4" fill="rgba(255,255,255,0.3)"/><circle cx="27" cy="40" r="2" fill="#fff"/></svg>
+      </div>
+      <span class="login-title">MedHC</span>
+    </div>
+    <div class="login-sub">Inicia sesión con la misma cuenta que usas en la app web para sincronizar tus pacientes y agenda.</div>
+    <button class="btn-google" onclick="loginGoogle()">
+      <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Continuar con Google
+    </button>
+    <button class="login-offline" onclick="iniciarSinConexion()">Continuar sin conexión (datos locales)</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
 <div id="topbar">
   <div class="tb-left">
     <img class="tb-logo-img" id="logo-img" alt="MedHC"
-      src="https://raw.githubusercontent.com/tu-usuario/tu-repo/main/logo.png"
+      src="./icon-192.png"
       onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='flex'"/>
     <div id="logo-fallback" style="display:none;align-items:center;gap:6px;">
       <svg viewBox="0 0 54 54" fill="none" style="width:30px;height:30px;flex-shrink:0"><rect width="54" height="54" rx="12" fill="#0891B2"/><path d="M10 27 L18 14 L24 27 L30 10 L36 27 L42 20" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="27" cy="40" r="4" fill="rgba(255,255,255,0.3)"/><circle cx="27" cy="40" r="2" fill="#fff"/></svg>
@@ -182,7 +216,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   </div>
   <div class="tb-right">
     <span class="tb-user" id="tb-user"></span>
-    <div class="tb-avatar" id="tb-avatar">?</div>
+    <div class="tb-avatar" id="tb-avatar" onclick="cerrarSesion()" title="Cerrar sesión">?</div>
   </div>
 </div>
 
@@ -370,27 +404,115 @@ const H_INI=7,H_FIN=20;
 const AGENDA_KEY="medhc_agenda_v4";
 const PROF_KEY="medhc_prof";
 
-// ── NOMBRE DESDE FIREBASE AUTH ─────────────────────────────────────────────
-// Cuando conectes Firebase, reemplaza getProf() con:
-// firebase.auth().onAuthStateChanged(u => { if(u){ setProf(u.displayName||u.email); initBanner(); }});
+// ── FIREBASE ───────────────────────────────────────────────────────────────
+const firebaseConfig={
+  apiKey:"AIzaSyAdCMm57dFHMv2s6SstFS02OzehBzv4NQA",
+  authDomain:"psicohcpc-7a140.firebaseapp.com",
+  projectId:"psicohcpc-7a140",
+  storageBucket:"psicohcpc-7a140.firebasestorage.app",
+  messagingSenderId:"374245814828",
+  appId:"1:374245814828:web:70c4ece62768c83f3a9789"
+};
+
+let auth=null,db=null,currentUID=null,_unsubAgenda=null,_unsubPacs=null;
+
+try{
+  if(window.__firebaseFailed) throw new Error("Firebase no disponible");
+  firebase.initializeApp(firebaseConfig);
+  auth=firebase.auth();
+  db=firebase.firestore();
+}catch(e){
+  console.warn("Firebase no cargó — modo local:",e.message);
+}
+
+function loginGoogle(){
+  const err=document.getElementById("login-error");
+  err.style.display="none";
+  if(!auth){iniciarSinConexion();return;}
+  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(function(e){
+    err.textContent="Error al iniciar sesión: "+e.message;
+    err.style.display="block";
+  });
+}
+
+function iniciarSinConexion(){
+  document.getElementById("login-overlay").style.display="none";
+  cargar();initBanner();renderAgenda();renderStats();
+}
+
+function cerrarSesion(){
+  if(!auth){return;}
+  if(_unsubAgenda){_unsubAgenda();_unsubAgenda=null;}
+  if(_unsubPacs){_unsubPacs();_unsubPacs=null;}
+  auth.signOut().then(function(){
+    agenda={};currentUID=null;
+    document.getElementById("login-overlay").style.display="flex";
+  });
+}
+
+if(auth){
+  auth.onAuthStateChanged(function(user){
+    if(user){
+      currentUID=user.uid;
+      document.getElementById("login-overlay").style.display="none";
+      setProf(user.displayName||user.email.split("@")[0]);
+      cargarPacientesFirestore(user.uid);
+      cargarAgendaFirestore(user.uid);
+    } else {
+      if(document.getElementById("login-overlay"))
+        document.getElementById("login-overlay").style.display="flex";
+    }
+  });
+} else {
+  // Sin Firebase: modo local directo
+  document.getElementById("login-overlay").style.display="none";
+  cargar();initBanner();renderAgenda();renderStats();
+}
+
+function cargarPacientesFirestore(uid){
+  if(!db)return;
+  if(_unsubPacs){_unsubPacs();}
+  _unsubPacs=db.collection("users").doc(uid).collection("pacientes")
+    .orderBy("createdAt","desc")
+    .onSnapshot(function(snap){
+      PACS=snap.docs.map(function(d){
+        return{id:d.id,hcCode:d.data().hcCode||"",nombre:d.data().nombre||"",tipo:d.data().tipoHistoria||"Adulto"};
+      });
+    });
+}
+
+function cargarAgendaFirestore(uid){
+  if(!db)return;
+  if(_unsubAgenda){_unsubAgenda();}
+  _unsubAgenda=db.collection("users").doc(uid).collection("agendaPWA").doc("data")
+    .onSnapshot(function(snap){
+      if(snap.exists&&snap.data().agenda){
+        try{agenda=JSON.parse(snap.data().agenda);}catch(e){agenda={};}
+      } else {
+        // Primera vez: migrar datos de localStorage si existen
+        cargar();
+        if(Object.keys(agenda).length>0) guardar();
+      }
+      initBanner();renderAgenda();renderStats();
+    });
+}
+
+// ── PERFIL ─────────────────────────────────────────────────────────────────
 function getProf(){return localStorage.getItem(PROF_KEY)||"Psicólogo/a";}
 function setProf(n){localStorage.setItem(PROF_KEY,n);}
 
-// Demo: cambia este nombre para probar
-setProf("Carolina Aponte");
-
-const PACS=[
-  {id:"p1",hcCode:"HC-2026-001",nombre:"Laura Martínez",tipo:"Adolescente"},
-  {id:"p2",hcCode:"HC-2026-002",nombre:"Carlos Rodríguez",tipo:"Adulto"},
-  {id:"p3",hcCode:"HC-2026-003",nombre:"Sofía & Andrés",tipo:"Pareja"},
-  {id:"p4",hcCode:"HC-2026-004",nombre:"Familia Torres",tipo:"Familia"},
-  {id:"p5",hcCode:"HC-2026-005",nombre:"Miguel Fernández",tipo:"Adulto mayor"},
-];
+let PACS=[];
 
 let agenda={},dur=60,semOff=0,mDia=null,mEditIdx=null,mPagoDk=null,mPagoIdx=null;
 
 function cargar(){try{const s=localStorage.getItem(AGENDA_KEY);if(s)agenda=JSON.parse(s);}catch(e){agenda={};}}
-function guardar(){localStorage.setItem(AGENDA_KEY,JSON.stringify(agenda));}
+function guardar(){
+  localStorage.setItem(AGENDA_KEY,JSON.stringify(agenda));
+  if(db&&currentUID){
+    db.collection("users").doc(currentUID).collection("agendaPWA").doc("data")
+      .set({agenda:JSON.stringify(agenda),updatedAt:new Date().toISOString()}).catch(function(){});
+  }
+}
 function fk(d){return d.toISOString().split("T")[0];}
 function hk(){return fk(new Date());}
 function fmtH(m){const h=Math.floor(m/60),mn=m%60,ap=h>=12?"PM":"AM",h12=h>12?h-12:h===0?12:h;return h12+":"+(mn===0?"00":mn<10?"0"+mn:mn)+" "+ap;}
@@ -764,8 +886,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   });
 });
 
-cargar();initBanner();renderAgenda();renderStats();
-
+// La inicialización se maneja en auth.onAuthStateChanged / iniciarSinConexion()
 
 // ── SERVICE WORKER (PWA) ────────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {

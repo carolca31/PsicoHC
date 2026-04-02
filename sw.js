@@ -1,14 +1,14 @@
 // MedHC Service Worker v1.1
 const CACHE_NAME = 'medhc-v1';
 const ASSETS = [
-  './app.html',
+  './MedHC_PWA.html',
   'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap'
 ];
 
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(ASSETS).catch(() => cache.add('./app.html'));
+      return cache.addAll(ASSETS).catch(() => cache.add('./MedHC_PWA.html'));
     })
   );
   self.skipWaiting();
@@ -43,7 +43,7 @@ self.addEventListener('fetch', event => {
         return response;
       }).catch(() => {
         if (event.request.destination === 'document') {
-          return caches.match('./app.html');
+          return caches.match('./MedHC_PWA.html');
         }
       });
     })
@@ -60,18 +60,18 @@ self.addEventListener('push', event => {
     tag: data.tag || 'medhc-notif',
     requireInteraction: data.urgent || false,
     vibrate: data.urgent ? [300, 100, 300, 100, 300] : [200, 100, 200],
-    data: { url: data.url || './app.html' }
+    data: { url: data.url || './MedHC_PWA.html' }
   };
   event.waitUntil(self.registration.showNotification(title, options));
 });
 
 self.addEventListener('notificationclick', event => {
   event.notification.close();
-  const targetUrl = event.notification.data?.url || './app.html';
+  const targetUrl = event.notification.data?.url || './MedHC_PWA.html';
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
       for (const client of clientList) {
-        if (client.url.includes('app.html') && 'focus' in client) return client.focus();
+        if (client.url.includes('MedHC_PWA.html') && 'focus' in client) return client.focus();
       }
       if (clients.openWindow) return clients.openWindow(targetUrl);
     })
