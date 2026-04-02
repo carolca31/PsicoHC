@@ -845,8 +845,9 @@ pre{background:var(--alt);border:1px solid var(--border);border-radius:9px;paddi
   #agenda-overlay .ag-foot-txt{font-size:11px;color:var(--light);}
   #agenda-overlay #ag-total-hoy-lbl{font-size:11px;font-weight:700;color:var(--cobalt);}
   /* Hoy lista */
-  #agenda-overlay .ag-hoy-item{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--border);}
+  #agenda-overlay .ag-hoy-item{display:flex;align-items:center;gap:9px;padding:8px 4px;border-bottom:cursor:pointer;border-radius:8px;transition:background .1s:1px solid var(--border);}
   #agenda-overlay .ag-hoy-item:last-child{border-bottom:none;}
+  #agenda-overlay .ag-hoy-item:hover{background:var(--apl);}
   #agenda-overlay .ag-hoy-hora{font-size:11px;font-weight:800;color:var(--accent);width:38px;flex-shrink:0;text-align:center;background:var(--apl);border-radius:6px;padding:2px 3px;}
   #agenda-overlay .ag-hoy-hora.aplazada-hora{background:var(--ypl);color:#92400E;}
   #agenda-overlay .ag-hoy-hora.cancelada-hora{background:var(--bg);color:var(--light);}
@@ -855,7 +856,7 @@ pre{background:var(--alt);border:1px solid var(--border);border-radius:9px;paddi
   #agenda-overlay .ag-hoy-sub{font-size:10px;color:var(--light);margin-top:1px;}
   #agenda-overlay .ag-hoy-item.ghost-item{opacity:.45;}
   #agenda-overlay .ag-hoy-item.ghost-item .ag-hoy-nombre{text-decoration:line-through;}
-  #agenda-overlay .ag-est-sel{padding:3px 5px;border-radius:6px;font-size:10px;font-weight:700;border:1.5px solid var(--border);background:var(--bg);color:var(--mid);cursor:pointer;font-family:inherit;outline:none;}max-width:82px;min-width:70px;
+  #agenda-overlay .ag-est-sel{padding:3px 5px;border-radius:6px;font-size:10px;font-weight:700;border:1.5px solid var(--border);background:var(--bg);color:var(--mid);cursor:pointer;font-family:inherit;outline:none;width:80px;flex-shrink:0;}
   #agenda-overlay .ag-est-sel.asistio{border-color:#16A34A;background:#DCFCE7;color:#16A34A;}
   #agenda-overlay .ag-est-sel.no-asistio{border-color:var(--danger);background:var(--rpl);color:var(--danger);}
   #agenda-overlay .ag-est-sel.aplazada{border-color:var(--yellow);background:var(--ypl);color:#92400E;}
@@ -904,12 +905,7 @@ pre{background:var(--alt);border:1px solid var(--border);border-radius:9px;paddi
   <!-- Top bar de agenda -->
   <div class="ag-topbar">
     <div class="ag-tb-left">
-      <svg viewBox="0 0 54 54" fill="none" xmlns="http://www.w3.org/2000/svg" width="30" height="30">
-        <rect width="54" height="54" rx="12" fill="#0891B2"/>
-        <path d="M10 27 L18 14 L24 27 L30 10 L36 27 L42 20" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-        <circle cx="27" cy="40" r="4" fill="rgba(255,255,255,0.3)"/>
-        <circle cx="27" cy="40" r="2" fill="#fff"/>
-      </svg>
+      <img id="ag-tb-logo" src="" alt="" style="width:30px;height:30px;border-radius:7px;object-fit:contain;background:rgba(255,255,255,.15);padding:3px;">
       <span class="ag-tb-name">MedHC</span>
     </div>
     <button onclick="openSB()" style="padding:6px 14px;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg> Mis historias</button>
@@ -12539,6 +12535,7 @@ init();
     <div class="ag-mf">
       <label>Paciente</label>
       <input id="ag-m-nombre" type="text" placeholder="Nombre o busca historia existente..." autocomplete="off" oninput="agBuscarPac(this.value)"/>
+      <input type="hidden" id="ag-m-hccode" value="">
       <div id="ag-pac-sugeridos"></div>
     </div>
     <div class="ag-mf" id="ag-hora-field">
@@ -12579,6 +12576,16 @@ init();
   function agChoca(dk,ini,dr,ex){return(agAgenda[dk]||[]).some((s,i)=>{if(i===ex||agEsGhost(s))return false;return ini<s.horaInicio+s.duracion&&ini+dr>s.horaInicio;});}
   function agChicaInfo(dk,ini,dr,ex){return(agAgenda[dk]||[]).find((s,i)=>{if(i===ex||agEsGhost(s))return false;return ini<s.horaInicio+s.duracion&&ini+dr>s.horaInicio;});}
 
+  function agGetPacs2(){
+    try{
+      if(window.patients&&window.patients.length)
+        return window.patients.map(p=>({nombre:(p.name||p.nombre||'').trim(),hcCode:p.hcCode||p.codigo||'',id:p.id||''}));
+    }catch(e){}
+    try{
+      const raw=localStorage.getItem('medhc_patients')||localStorage.getItem('patients')||'[]';
+      return JSON.parse(raw).map(p=>({nombre:(p.name||p.nombre||'').trim(),hcCode:p.hcCode||p.codigo||'',id:p.id||''}));
+    }catch(e){return[];}
+  }
   function agGetPacs(){
     try{
       const raw=localStorage.getItem('medhc_patients')||localStorage.getItem('patients')||'[]';
@@ -12607,8 +12614,8 @@ init();
   function agInitBanner(){
     const a=new Date(),h=a.getHours();
     const sal=h<12?"Buenos días":h<18?"Buenas tardes":"Buenas noches";
-    try{var _p=JSON.parse(localStorage.getItem('medhc_prof')||'{}');var _n=(_p.nombre||'').trim();document.getElementById('ag-greeting').textContent=sal+(_n?' — '+_n:' — MedHC');}catch(e){document.getElementById('ag-greeting').textContent=sal+' — MedHC';}
-    try{var _li=document.querySelector('#logo-icon img');var _bl=document.getElementById('ag-banner-logo');if(_li&&_bl)_bl.src=_li.src;}catch(e){}
+    try{var _n=(window.profesional&&(window.profesional.nombre||'').trim())||(JSON.parse(localStorage.getItem('medhc_prof')||'{}').nombre||'').trim();document.getElementById('ag-greeting').textContent=sal+(_n?' — '+_n:' — MedHC');}catch(e){document.getElementById('ag-greeting').textContent=sal+' — MedHC';}
+    try{var _li=document.querySelector('#logo-icon img');var _bl=document.getElementById('ag-banner-logo');if(_li&&_bl)_bl.src=_li.src;var _tl=document.getElementById('ag-tb-logo');if(_li&&_tl)_tl.src=_li.src;}catch(e){}
     document.getElementById('ag-fecha').textContent=a.toLocaleDateString("es-ES",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
     const pacs=agGetPacs();
     document.getElementById('ag-st-total').textContent=pacs.length;
@@ -12641,13 +12648,13 @@ init();
       const cls=est?(" "+est):"";
       const isGh=est==="aplazada"||est==="cancelada";
       const horaCls=est==="aplazada"?" aplazada-hora":est==="cancelada"?" cancelada-hora":"";
-      return `<div class="ag-hoy-item${isGh?" ghost-item":""}">
+      return `<div class="ag-hoy-item${isGh?" ghost-item":""}" onclick="agAbrirHistoria('${(c.hcCode||'').replace(/'/g,"\\'")}','${(c.nombre||'').replace(/'/g,"\\'")}')">
         <div class="ag-hoy-hora${horaCls}">${agFmtHC(c.horaInicio)}</div>
         <div class="ag-hoy-info">
-          <div class="ag-hoy-nombre">${c.nombre}</div>
-          <div class="ag-hoy-sub">${c.hcCode?c.hcCode+" · ":""}${agFmtH(c.horaInicio)}–${agFmtH(c.horaInicio+c.duracion)}</div>
+          <div class="ag-hoy-nombre">${c.nombre||'(sin nombre)'}</div>
+          <div class="ag-hoy-sub">${c.hcCode?'<span style="font-weight:700;color:var(--accent)">'+c.hcCode+'</span> · ':''}\${agFmtH(c.horaInicio)}–${agFmtH(c.horaInicio+c.duracion)}</div>
         </div>
-        <select class="ag-est-sel${cls}" onchange="agSetEstado('${agHk()}',${i},this)">
+        <select class="ag-est-sel${cls}" onchange="agSetEstado('${agHk()}',${i},this)" onclick="event.stopPropagation()">
           <option value="" ${!est?"selected":""}>Estado</option>
           <option value="asistio" ${est==="asistio"?"selected":""}>Asistió</option>
           <option value="no-asistio" ${est==="no-asistio"?"selected":""}>No asistió</option>
@@ -12787,25 +12794,25 @@ init();
     const pacs=agGetPacs();
     const pac=pacs.find(p=>p.nombre.toLowerCase()===nombre.toLowerCase());
     if(!agAgenda[agMDia])agAgenda[agMDia]=[];
-    agAgenda[agMDia].push({nombre,horaInicio:hi,duracion:agDur,estado:"",hcCode:pac?pac.hcCode:""});
+    agAgenda[agMDia].push({nombre,horaInicio:hi,duracion:agDur,estado:"",hcCode:(document.getElementById("ag-m-hccode")&&document.getElementById("ag-m-hccode").value)||pac&&pac.hcCode||""});
     agGuardar();agCerrarModal();agRenderAgenda();agRenderHoy();agActualizarStatHoy();
   };
 
   window.agBuscarPac=function(q){
     const box=document.getElementById('ag-pac-sugeridos');
     if(!q.trim()){box.style.display="none";return;}
-    const pacs=agGetPacs();
+    const pacs=agGetPacs2();
     const res=pacs.filter(p=>p.nombre.toLowerCase().includes(q.toLowerCase())||p.hcCode.toLowerCase().includes(q.toLowerCase())).slice(0,5);
     if(!res.length){box.style.display="none";return;}
-    box.innerHTML=res.map(p=>`<div class="ag-pac-sug" onclick="agSelPac('${p.nombre.replace(/'/g,"\\'")}')"><div>${p.nombre}</div><div class="ag-pac-sug-hc">${p.hcCode} · ${p.tipo}</div></div>`).join("");
+    box.innerHTML=res.map(p=>`<div class="ag-pac-sug" onclick="agSelPac('${p.nombre.replace(/'/g,"\\'").replace(/"/g,'')}','${p.hcCode}')" style="display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer;border-radius:6px;"><div>${p.nombre}</div><div class="ag-pac-sug-hc">${p.hcCode} · ${p.tipo}</div></div>`).join("");
     box.style.display="block";
   };
 
-  window.agSelPac=function(nombre){
+  window.agSelPac=function(nombre,hcCode){
     document.getElementById('ag-m-nombre').value=nombre;
     document.getElementById('ag-pac-sugeridos').style.display="none";
-  };
-
+    // Store hcCode for linking
+    var hf=document.getElementById('ag-m-hccode');if(hf)hf.value=hcCode||'';
   window.agEliminar=function(dk,idx,e){
     if(e)e.stopPropagation();
     if(!confirm("¿Eliminar esta consulta?"))return;
@@ -12814,6 +12821,12 @@ init();
     agGuardar();agRenderAgenda();agRenderHoy();agActualizarStatHoy();
   };
 
+  window.agAbrirHistoria=function(hcCode,nombre){
+    var pacs=agGetPacs2();
+    var pac=hcCode?pacs.find(function(p){return (p.hcCode||'')===(hcCode||'');})
+      :pacs.find(function(p){return (p.nombre||'').toLowerCase()===(nombre||'').toLowerCase();});
+    if(pac&&pac.id){selectP(pac.id);}
+  };
   window.agCambiarDuracion=function(v){agDur=parseInt(v);agRenderAgenda();};
   window.agCambiarSemana=function(d){agSemOff+=d;agRenderAgenda();};
   window.agIrHoy=function(){agSemOff=0;agRenderAgenda();};
