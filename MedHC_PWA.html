@@ -7,7 +7,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>MedHC — Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<!-- PWA -->
 <link rel="manifest" href="manifest.json">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -167,150 +166,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 #monto-input{flex:1;padding:12px;border:1.5px solid var(--border);border-radius:10px;font-size:20px;font-weight:800;font-family:inherit;outline:none;color:var(--brown);text-align:right;}
 #monto-input:focus{border-color:var(--accent);}
 .btn-monto-ok{width:100%;padding:13px;background:linear-gradient(135deg,var(--cobalt),var(--accent));color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;}
-
-/* ── LOGIN OVERLAY ── */
-#login-overlay{position:fixed;inset:0;background:linear-gradient(135deg,var(--cobalt) 0%,#0891B2 100%);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0;}
-#login-box{background:#fff;border-radius:24px;padding:32px 28px;width:calc(100% - 48px);max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.3);}
-.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:24px;}
-.login-logo-icon{width:44px;height:44px;border-radius:12px;background:var(--cobalt);display:flex;align-items:center;justify-content:center;}
-.login-logo-txt{font-size:22px;font-weight:800;color:var(--cobalt);}
-.login-title{font-size:16px;font-weight:800;color:var(--cobalt);margin-bottom:4px;}
-.login-sub{font-size:12px;color:var(--light);margin-bottom:20px;font-weight:500;}
-.login-field{margin-bottom:12px;}
-.login-field label{display:block;font-size:10px;font-weight:800;color:var(--mid);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;}
-.login-field input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;color:var(--brown);outline:none;}
-.login-field input:focus{border-color:var(--accent);}
-.btn-login{width:100%;padding:13px;background:linear-gradient(135deg,var(--cobalt),var(--accent));color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;margin-top:4px;}
-.btn-google{width:100%;padding:12px;background:#fff;color:var(--brown);border:1.5px solid var(--border);border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;}
-.btn-google:hover{border-color:var(--accent);}
-.login-err{color:var(--danger);font-size:11px;font-weight:600;margin-top:8px;display:none;}
-.login-sep{text-align:center;font-size:11px;color:var(--light);margin:10px 0;font-weight:500;}
-
-/* ── NOTIFICACIONES ── */
-#notif-container{position:fixed;top:70px;right:12px;z-index:8000;display:flex;flex-direction:column;gap:8px;max-width:300px;pointer-events:none;}
-.notif-toast{background:#fff;border-radius:14px;padding:13px 15px;box-shadow:0 8px 32px rgba(26,58,110,.22);border-left:4px solid var(--accent);pointer-events:all;animation:notifIn .35s cubic-bezier(.34,1.56,.64,1);display:flex;gap:10px;align-items:flex-start;border:1.5px solid var(--border);border-left-width:4px;}
-.notif-toast.urgent{border-left-color:var(--danger)!important;}
-@keyframes notifIn{from{transform:translateX(110%);opacity:0;}to{transform:translateX(0);opacity:1;}}
-.notif-icon{font-size:20px;flex-shrink:0;}
-.notif-body{flex:1;min-width:0;}
-.notif-title{font-size:12px;font-weight:800;color:var(--cobalt);margin-bottom:1px;}
-.notif-msg{font-size:11px;color:var(--mid);font-weight:500;}
-.notif-time{font-size:10px;color:var(--accent);font-weight:700;margin-top:3px;}
-.notif-close{background:none;border:none;color:var(--light);cursor:pointer;font-size:13px;padding:0;flex-shrink:0;}
-#notif-bell{background:rgba(255,255,255,.12);border:none;border-radius:8px;padding:5px 7px;cursor:pointer;position:relative;display:flex;align-items:center;}
-#notif-bell svg{width:18px;height:18px;stroke:#fff;}
-#notif-bell-badge{position:absolute;top:-3px;right:-3px;background:var(--danger);color:#fff;font-size:8px;font-weight:800;border-radius:99px;padding:1px 4px;min-width:14px;text-align:center;display:none;}
-
-/* ── PANEL ADMIN ── */
-#admin-overlay{display:none;position:fixed;inset:0;background:rgba(10,20,40,.5);z-index:7000;align-items:flex-end;justify-content:center;}
-#admin-overlay.open{display:flex;}
-#admin-panel{background:#fff;border-radius:24px 24px 0 0;padding:24px 20px 36px;width:100%;max-width:520px;max-height:85vh;overflow-y:auto;}
-.admin-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px;}
-.admin-title{font-size:16px;font-weight:800;color:var(--cobalt);margin-bottom:2px;}
-.admin-sub{font-size:11px;color:var(--light);font-weight:500;margin-bottom:20px;}
-.admin-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
-.admin-stat{background:var(--bg);border-radius:12px;padding:14px 12px;text-align:center;border:1.5px solid var(--border);}
-.admin-stat-n{font-size:24px;font-weight:800;color:var(--cobalt);line-height:1;}
-.admin-stat-l{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--light);margin-top:3px;}
-.admin-section-title{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--cobalt);margin-bottom:10px;}
-.admin-user-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
-.admin-user-row:last-child{border-bottom:none;}
-.admin-avatar{width:36px;height:36px;border-radius:50%;background:var(--apl);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--accent);flex-shrink:0;}
-.admin-user-info{flex:1;min-width:0;}
-.admin-user-name{font-size:12px;font-weight:700;color:var(--brown);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.admin-user-email{font-size:10px;color:var(--light);margin-top:1px;}
-.admin-user-stat{text-align:right;flex-shrink:0;}
-.admin-user-num{font-size:13px;font-weight:800;color:var(--cobalt);}
-.admin-user-lbl{font-size:9px;color:var(--light);font-weight:600;}
-.admin-empty{text-align:center;padding:24px 0;color:var(--light);font-size:12px;}
-.btn-admin-close{width:100%;padding:13px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;font-size:13px;font-weight:700;color:var(--mid);cursor:pointer;font-family:inherit;margin-top:16px;}
-#admin-fab{position:fixed;bottom:calc(var(--nav-h) + 16px);left:16px;background:linear-gradient(135deg,var(--cobalt),var(--accent));color:#fff;border:none;border-radius:14px;padding:10px 14px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(26,58,110,.3);display:none;align-items:center;gap:6px;z-index:400;}
-#admin-fab svg{width:14px;height:14px;stroke:#fff;}
-
-/* ── SYNC INDICATOR ── */
-#sync-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block;margin-left:6px;transition:background .3s;}
-#sync-dot.syncing{background:var(--yellow);animation:blink .7s infinite;}
-#sync-dot.error{background:var(--danger);}
-@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
-
-/* ── PWA INSTALL BANNER ── */
-#pwa-banner{display:none;position:fixed;bottom:calc(var(--nav-h) + 12px);left:50%;transform:translateX(-50%);width:calc(100% - 28px);max-width:420px;background:var(--cobalt);border-radius:16px;padding:14px 16px;z-index:600;box-shadow:0 8px 32px rgba(26,58,110,.35);animation:slideUp .4s cubic-bezier(.34,1.56,.64,1);}
-@keyframes slideUp{from{transform:translateX(-50%) translateY(20px);opacity:0;}to{transform:translateX(-50%) translateY(0);opacity:1;}}
-#pwa-banner.visible{display:flex;align-items:center;gap:12px;}
-.pwa-icon{width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;}
-.pwa-info{flex:1;min-width:0;}
-.pwa-title{font-size:12px;font-weight:800;color:#fff;margin-bottom:1px;}
-.pwa-sub{font-size:10px;color:rgba(255,255,255,.6);font-weight:500;}
-.pwa-actions{display:flex;gap:6px;flex-shrink:0;}
-.btn-pwa-install{padding:8px 12px;background:#fff;color:var(--cobalt);border:none;border-radius:9px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap;}
-.btn-pwa-install:hover{background:var(--apl);}
-.btn-pwa-close{padding:8px;background:rgba(255,255,255,.12);color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
-
 </style>
 </head>
 <body>
 
-
-<div id="notif-container"></div>
-
-<!-- PWA INSTALL BANNER -->
-<div id="pwa-banner">
-  <div class="pwa-icon">📲</div>
-  <div class="pwa-info">
-    <div class="pwa-title">Instalar MedHC</div>
-    <div class="pwa-sub">Accede sin navegador, como una app</div>
-  </div>
-  <div class="pwa-actions">
-    <button class="btn-pwa-install" id="btn-pwa-install">Instalar</button>
-    <button class="btn-pwa-close" onclick="cerrarBannerPWA()">✕</button>
-  </div>
-</div>
-
-<!-- LOGIN -->
-<div id="login-overlay">
-  <div id="login-box">
-    <div class="login-logo">
-      <div class="login-logo-icon">
-        <svg viewBox="0 0 54 54" fill="none" style="width:28px;height:28px"><path d="M10 27 L18 14 L24 27 L30 10 L36 27 L42 20" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-      </div>
-      <span class="login-logo-txt">MedHC</span>
-    </div>
-    <div class="login-title">Iniciar sesión</div>
-    <div class="login-sub">Accede con tu cuenta de psicólogo/a</div>
-    <div class="login-field"><label>Correo</label><input type="email" id="login-email" placeholder="correo@ejemplo.com"/></div>
-    <div class="login-field"><label>Contraseña</label><input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')loginEmail()"/></div>
-    <div class="login-err" id="login-err"></div>
-    <button class="btn-login" onclick="loginEmail()">Entrar</button>
-    <div class="login-sep">o</div>
-    <button class="btn-google" onclick="loginGoogle()">
-      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34.5 6.5 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.8 19 13 24 13c3.1 0 5.8 1.1 8 2.9l5.7-5.7C34.5 6.5 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5.1l-6.2-5.2C29.2 35.3 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.6 5.1C9.5 39.5 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.3 5.7l6.2 5.2C37 36.9 44 31 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>
-      Continuar con Google
-    </button>
-  </div>
-</div>
-
-<!-- ADMIN PANEL -->
-<div id="admin-overlay" onclick="if(event.target===this)cerrarAdmin()">
-  <div id="admin-panel">
-    <div class="admin-handle"></div>
-    <div class="admin-title">Panel de Administrador</div>
-    <div class="admin-sub">Vista general de MedHC · <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="335052415c5f5052000273545e525a5f1d505c5e">[email&#160;protected]</a></div>
-    <div class="admin-stat-grid">
-      <div class="admin-stat"><div class="admin-stat-n" id="adm-usuarios">—</div><div class="admin-stat-l">Psicólogos</div></div>
-      <div class="admin-stat"><div class="admin-stat-n" id="adm-citas-hoy">—</div><div class="admin-stat-l">Citas hoy</div></div>
-      <div class="admin-stat"><div class="admin-stat-n" id="adm-citas-mes">—</div><div class="admin-stat-l">Citas mes</div></div>
-    </div>
-    <div class="admin-section-title">Psicólogos activos</div>
-    <div id="admin-user-list"><div class="admin-empty">Cargando...</div></div>
-    <button class="btn-admin-close" onclick="cerrarAdmin()">Cerrar</button>
-  </div>
-</div>
-
-<!-- ADMIN FAB -->
-<button id="admin-fab" onclick="abrirAdmin()">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-  Admin
-</button>
 <div id="topbar">
   <div class="tb-left">
     <img class="tb-logo-img" id="logo-img" alt="MedHC"
@@ -322,10 +181,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
     </div>
   </div>
   <div class="tb-right">
-    <span id="sync-dot" title="Sincronizado"></span>
-    <button id="notif-bell" onclick="toggleNotifPanel()" title="Notificaciones"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span id="notif-bell-badge">0</span></button>
     <span class="tb-user" id="tb-user"></span>
-    <div class="tb-avatar" id="tb-avatar" onclick="cerrarSesion()" title="Cerrar sesión">?</div>
+    <div class="tb-avatar" id="tb-avatar">?</div>
   </div>
 </div>
 
@@ -508,7 +365,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 const H_INI=7,H_FIN=20;
 const AGENDA_KEY="medhc_agenda_v4";
 const PROF_KEY="medhc_prof";
@@ -532,13 +389,8 @@ const PACS=[
 
 let agenda={},dur=60,semOff=0,mDia=null,mEditIdx=null,mPagoDk=null,mPagoIdx=null;
 
-function cargar(){
-  try{const s=localStorage.getItem(AGENDA_KEY);if(s)agenda=JSON.parse(s);}catch(e){agenda={};}
-}
-function guardar(){
-  localStorage.setItem(AGENDA_KEY,JSON.stringify(agenda));
-  syncFirebase();
-}
+function cargar(){try{const s=localStorage.getItem(AGENDA_KEY);if(s)agenda=JSON.parse(s);}catch(e){agenda={};}}
+function guardar(){localStorage.setItem(AGENDA_KEY,JSON.stringify(agenda));}
 function fk(d){return d.toISOString().split("T")[0];}
 function hk(){return fk(new Date());}
 function fmtH(m){const h=Math.floor(m/60),mn=m%60,ap=h>=12?"PM":"AM",h12=h>12?h-12:h===0?12:h;return h12+":"+(mn===0?"00":mn<10?"0"+mn:mn)+" "+ap;}
@@ -914,362 +766,13 @@ document.addEventListener("DOMContentLoaded",()=>{
 
 cargar();initBanner();renderAgenda();renderStats();
 
-// ═══════════════════════════════════════════════════════════════════
-// FIREBASE + AUTH + SYNC + ALARMAS + ADMIN
-// ═══════════════════════════════════════════════════════════════════
 
-const ADMIN_EMAIL = "carolca31@gmail.com";
-let currentUID = null;
-let currentEmail = null;
-let fbApp, auth, db;
-let unsubscribeAgenda = null;
-let syncTimeout = null;
-
-// ── Inicializar Firebase ──────────────────────────────────────────
-async function initFirebase() {
-  const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
-  const { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
-  const { getFirestore, doc, setDoc, onSnapshot, collection, getDocs } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAdCMm57dFHMv2s6SstFS02OzehBzv4NQA",
-    authDomain: "psicohcpc-7a140.firebaseapp.com",
-    projectId: "psicohcpc-7a140",
-    storageBucket: "psicohcpc-7a140.firebasestorage.app",
-    messagingSenderId: "374245814828",
-    appId: "1:374245814828:web:70c4ece62768c83f3a9789"
-  };
-
-  fbApp = initializeApp(firebaseConfig);
-  auth = getAuth(fbApp);
-  db = getFirestore(fbApp);
-
-  // ── Login con email ──
-  window.loginEmail = async function() {
-    const email = document.getElementById("login-email").value.trim();
-    const pass = document.getElementById("login-pass").value;
-    const err = document.getElementById("login-err");
-    err.style.display = "none";
-    try {
-      await signInWithEmailAndPassword(auth, email, pass);
-    } catch(e) {
-      err.textContent = "Correo o contraseña incorrectos";
-      err.style.display = "block";
-    }
-  };
-
-  // ── Login con Google ──
-  window.loginGoogle = async function() {
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-    } catch(e) {
-      const err = document.getElementById("login-err");
-      err.textContent = "Error al iniciar con Google";
-      err.style.display = "block";
-    }
-  };
-
-  // ── Cerrar sesión ──
-  window.cerrarSesion = async function() {
-    if (!confirm("¿Cerrar sesión?")) return;
-    if (unsubscribeAgenda) unsubscribeAgenda();
-    await signOut(auth);
-    location.reload();
-  };
-
-  // ── Sync a Firebase ──
-  window.syncFirebase = function() {
-    if (!currentUID || !db) return;
-    setSyncState("syncing");
-    if (syncTimeout) clearTimeout(syncTimeout);
-    syncTimeout = setTimeout(async () => {
-      try {
-        await setDoc(doc(db, "agendas", currentUID), {
-          agenda: JSON.stringify(agenda),
-          email: currentEmail,
-          displayName: getProf(),
-          updatedAt: Date.now()
-        });
-        setSyncState("ok");
-      } catch(e) {
-        setSyncState("error");
-        console.warn("Sync error:", e);
-      }
-    }, 800); // debounce
-  };
-
-  function setSyncState(state) {
-    const dot = document.getElementById("sync-dot");
-    if (!dot) return;
-    dot.className = state === "syncing" ? "syncing" : state === "error" ? "error" : "";
-    dot.title = state === "syncing" ? "Guardando..." : state === "error" ? "Error al guardar" : "Sincronizado";
-  }
-
-  // ── Escuchar cambios remotos en tiempo real ──
-  function suscribirAgendaRemota(uid) {
-    if (unsubscribeAgenda) unsubscribeAgenda();
-    const ref = doc(db, "agendas", uid);
-    unsubscribeAgenda = onSnapshot(ref, snap => {
-      if (!snap.exists()) return;
-      try {
-        const data = snap.data();
-        const remota = JSON.parse(data.agenda || "{}");
-        // Solo actualizar si es más reciente que lo local
-        const tsRemoto = data.updatedAt || 0;
-        const tsLocal = parseInt(localStorage.getItem("medhc_ts") || "0");
-        if (tsRemoto > tsLocal) {
-          agenda = remota;
-          localStorage.setItem(AGENDA_KEY, JSON.stringify(agenda));
-          localStorage.setItem("medhc_ts", tsRemoto);
-          renderAgenda(); renderHoy(); actualizarStatHoy();
-        }
-        setSyncState("ok");
-      } catch(e) { console.warn("Remote parse error:", e); }
-    });
-  }
-
-  // ── Panel Admin: cargar datos de todos los usuarios ──
-  window.cargarDatosAdmin = async function() {
-    if (!db) return;
-    const list = document.getElementById("admin-user-list");
-    list.innerHTML = '<div class="admin-empty">Cargando...</div>';
-    try {
-      const snapshot = await getDocs(collection(db, "agendas"));
-      const users = [];
-      let totalHoy = 0, totalMes = 0;
-      const hoy = new Date().toISOString().split("T")[0];
-      const mesActual = new Date().getMonth(), anioActual = new Date().getFullYear();
-
-      snapshot.forEach(docSnap => {
-        const d = docSnap.data();
-        let ag = {};
-        try { ag = JSON.parse(d.agenda || "{}"); } catch(e) {}
-        let citasHoy = 0, citasMes = 0;
-        Object.keys(ag).forEach(dk => {
-          const citas = (ag[dk] || []).length;
-          if (dk === hoy) { citasHoy += citas; totalHoy += citas; }
-          const f = new Date(dk + "T00:00:00");
-          if (f.getMonth() === mesActual && f.getFullYear() === anioActual) {
-            citasMes += citas; totalMes += citas;
-          }
-        });
-        if (d.email && d.email !== ADMIN_EMAIL) {
-          users.push({ name: d.displayName || d.email, email: d.email, citasHoy, citasMes });
-        }
-      });
-
-      document.getElementById("adm-usuarios").textContent = users.length;
-      document.getElementById("adm-citas-hoy").textContent = totalHoy;
-      document.getElementById("adm-citas-mes").textContent = totalMes;
-
-      if (users.length === 0) {
-        list.innerHTML = '<div class="admin-empty">Aún no hay psicólogos registrados</div>';
-        return;
-      }
-      users.sort((a,b) => b.citasMes - a.citasMes);
-      list.innerHTML = users.map(u => {
-        const ini = u.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0,2);
-        return `<div class="admin-user-row">
-          <div class="admin-avatar">${ini}</div>
-          <div class="admin-user-info">
-            <div class="admin-user-name">${u.name}</div>
-            <div class="admin-user-email">${u.email}</div>
-          </div>
-          <div class="admin-user-stat">
-            <div class="admin-user-num">${u.citasMes}</div>
-            <div class="admin-user-lbl">citas/mes</div>
-          </div>
-        </div>`;
-      }).join("");
-    } catch(e) {
-      list.innerHTML = '<div class="admin-empty">Error al cargar datos</div>';
-      console.warn("Admin load error:", e);
-    }
-  };
-
-  window.abrirAdmin = function() {
-    document.getElementById("admin-overlay").classList.add("open");
-    window.cargarDatosAdmin();
-  };
-  window.cerrarAdmin = function() {
-    document.getElementById("admin-overlay").classList.remove("open");
-  };
-
-  // ── Auth state change ──
-  onAuthStateChanged(auth, user => {
-    if (user) {
-      currentUID = user.uid;
-      currentEmail = user.email;
-      const nombre = user.displayName || user.email.split("@")[0];
-      setProf(nombre);
-      document.getElementById("login-overlay").style.display = "none";
-      initBanner();
-      cargar();
-      renderAgenda();
-      renderStats();
-      suscribirAgendaRemota(user.uid);
-      setTimeout(iniciarAlarmas, 1500);
-      // Mostrar fab admin si es administradora
-      if (user.email === ADMIN_EMAIL) {
-        document.getElementById("admin-fab").style.display = "flex";
-      }
-    } else {
-      document.getElementById("login-overlay").style.display = "flex";
-    }
-  });
-}
-
-// ── NOTIFICACIONES / ALARMAS ─────────────────────────────────────
-let notifInterval = null;
-let notifHistory = [];
-
-function iniciarAlarmas() {
-  if ("Notification" in window && Notification.permission === "default") {
-    Notification.requestPermission();
-  }
-  if (notifInterval) clearInterval(notifInterval);
-  checkAlarmas();
-  notifInterval = setInterval(checkAlarmas, 60000);
-}
-
-function checkAlarmas() {
-  const ahora = new Date();
-  const dk = new Date().toISOString().split("T")[0];
-  const citas = (agenda[dk] || []).filter(c => c.estado !== "cancelada" && c.estado !== "aplazada");
-  const minNow = ahora.getHours() * 60 + ahora.getMinutes();
-  [60, 30, 15, 5].forEach(antes => {
-    citas.forEach(c => {
-      const diff = (c.horaInicio - antes) - minNow;
-      if (diff >= 0 && diff < 1) {
-        const key = dk + "_" + c.horaInicio + "_" + antes;
-        if (!notifHistory.includes(key)) {
-          notifHistory.push(key);
-          dispararAlarma(c, antes);
-        }
-      }
-    });
-  });
-  actualizarBellBadge();
-}
-
-function dispararAlarma(cita, minAntes) {
-  const urgent = minAntes <= 5;
-  const emoji = urgent ? "🚨" : minAntes <= 15 ? "⏰" : "📅";
-  const msg = "Faltan " + minAntes + " min";
-  mostrarToast(emoji, cita.nombre, msg, fmtH(cita.horaInicio), urgent);
-  if ("Notification" in window && Notification.permission === "granted") {
-    const n = new Notification("MedHC — " + cita.nombre, {
-      body: msg + " · " + fmtH(cita.horaInicio),
-      tag: "medhc_" + cita.horaInicio,
-      requireInteraction: urgent
-    });
-    setTimeout(() => n.close(), urgent ? 20000 : 8000);
-  }
-  if (navigator.vibrate) navigator.vibrate(urgent ? [300,100,300,100,300] : [200,100,200]);
-  playBeep(urgent);
-}
-
-function playBeep(urgent) {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const times = urgent ? [0, 0.35, 0.7] : [0];
-    times.forEach(t => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.frequency.value = urgent ? 880 : 660;
-      osc.type = "sine";
-      gain.gain.setValueAtTime(0.3, ctx.currentTime + t);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.28);
-      osc.start(ctx.currentTime + t);
-      osc.stop(ctx.currentTime + t + 0.3);
-    });
-  } catch(e) {}
-}
-
-function mostrarToast(icon, titulo, msg, hora, urgent) {
-  const c = document.getElementById("notif-container");
-  const d = document.createElement("div");
-  d.className = "notif-toast" + (urgent ? " urgent" : "");
-  d.innerHTML = `<div class="notif-icon">${icon}</div><div class="notif-body"><div class="notif-title">${titulo}</div><div class="notif-msg">${msg}</div><div class="notif-time">${hora}</div></div><button class="notif-close" onclick="this.closest('.notif-toast').remove();actualizarBellBadge()">✕</button>`;
-  c.appendChild(d);
-  actualizarBellBadge();
-  if (!urgent) setTimeout(() => { d.remove(); actualizarBellBadge(); }, 12000);
-}
-
-function actualizarBellBadge() {
-  const n = document.getElementById("notif-container").children.length;
-  const b = document.getElementById("notif-bell-badge");
-  if (b) { b.textContent = n; b.style.display = n > 0 ? "block" : "none"; }
-}
-
-window.toggleNotifPanel = function() {
-  const c = document.getElementById("notif-container");
-  if (c.children.length === 0) mostrarToast("📅", "Sin alertas pendientes", "Te avisaremos antes de tus citas", "", false);
-};
-
-// Iniciar Firebase al cargar
-initFirebase();
-
-// ── PWA: Service Worker + Botón Instalar ─────────────────────────
-let deferredInstallPrompt = null;
-
-// Registrar Service Worker
+// ── SERVICE WORKER (PWA) ────────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('MedHC SW registrado:', reg.scope))
-      .catch(err => console.warn('SW error:', err));
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
   });
 }
-
-// Capturar evento de instalación del navegador
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredInstallPrompt = e;
-  // Solo mostrar si no se instaló antes
-  if (!localStorage.getItem('pwa-installed') && !localStorage.getItem('pwa-dismissed')) {
-    setTimeout(() => {
-      document.getElementById('pwa-banner').classList.add('visible');
-    }, 3000);
-  }
-});
-
-// Botón instalar
-document.getElementById('btn-pwa-install').addEventListener('click', async () => {
-  if (!deferredInstallPrompt) {
-    // iOS: mostrar instrucciones manuales
-    alert('En iPhone/iPad:\n1. Toca el botón de compartir (⎙) en Safari\n2. Selecciona "Agregar a pantalla de inicio"\n3. Toca "Agregar"');
-    return;
-  }
-  deferredInstallPrompt.prompt();
-  const { outcome } = await deferredInstallPrompt.userChoice;
-  if (outcome === 'accepted') {
-    localStorage.setItem('pwa-installed', '1');
-    mostrarToast('✅', 'MedHC instalada', 'Ya puedes abrirla desde tu pantalla de inicio', '', false);
-  }
-  deferredInstallPrompt = null;
-  document.getElementById('pwa-banner').classList.remove('visible');
-});
-
-// Detectar cuando ya está instalada como PWA
-window.addEventListener('appinstalled', () => {
-  localStorage.setItem('pwa-installed', '1');
-  document.getElementById('pwa-banner').classList.remove('visible');
-});
-
-window.cerrarBannerPWA = function() {
-  document.getElementById('pwa-banner').classList.remove('visible');
-  localStorage.setItem('pwa-dismissed', '1');
-};
-
-// Si se abre como PWA standalone, ocultar banner
-if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
-  localStorage.setItem('pwa-installed', '1');
-}
-
-
 </script>
 </body>
 </html>
