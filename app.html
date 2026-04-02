@@ -845,7 +845,8 @@ pre{background:var(--alt);border:1px solid var(--border);border-radius:9px;paddi
   #agenda-overlay .ag-foot-txt{font-size:11px;color:var(--light);}
   #agenda-overlay #ag-total-hoy-lbl{font-size:11px;font-weight:700;color:var(--cobalt);}
   /* Hoy lista */
-  #agenda-overlay .ag-hoy-item{display:flex;align-items:center;gap:9px;padding:8px 4px;border-bottom:cursor:pointer;border-radius:8px;transition:background .1s:1px solid var(--border);}
+  #agenda-overlay .ag-hoy-item{display:flex;align-items:center;gap:9px;padding:8px 4px;border-bottom:1px solid var(--border);cursor:pointer;border-radius:8px;transition:background .1s;}
+  .ag-slot-est{padding:2px 4px;border-radius:5px;font-size:9px;font-weight:700;border:1.5px solid var(--border);background:var(--bg);color:var(--mid);cursor:pointer;font-family:inherit;outline:none;width:28px;flex-shrink:0;}
   #agenda-overlay .ag-hoy-item:last-child{border-bottom:none;}
   #agenda-overlay .ag-hoy-item:hover{background:var(--apl);}
   #agenda-overlay .ag-hoy-hora{font-size:11px;font-weight:800;color:var(--accent);width:38px;flex-shrink:0;text-align:center;background:var(--apl);border-radius:6px;padding:2px 3px;}
@@ -901,15 +902,6 @@ pre{background:var(--alt);border:1px solid var(--border);border-radius:9px;paddi
   .ag-btn-confirm{flex:1;padding:9px;background:linear-gradient(135deg,var(--cobalt),var(--accent));color:#fff;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;}
   .ag-btn-confirm:hover{opacity:.9;}
   </style>
-
-  <!-- Top bar de agenda -->
-  <div class="ag-topbar">
-    <div class="ag-tb-left">
-      <img id="ag-tb-logo" src="" alt="" style="width:30px;height:30px;border-radius:7px;object-fit:contain;background:rgba(255,255,255,.15);padding:3px;">
-      <span class="ag-tb-name">MedHC</span>
-    </div>
-    <button onclick="openSB()" style="padding:6px 14px;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg> Mis historias</button>
-  </div>
 
   <!-- Contenido -->
   <div style="max-width:1100px;margin:0 auto;padding:18px 18px 48px;">
@@ -12615,9 +12607,9 @@ init();
     const a=new Date(),h=a.getHours();
     const sal=h<12?"Buenos días":h<18?"Buenas tardes":"Buenas noches";
     try{var _n=(window.profesional&&(window.profesional.nombre||'').trim())||(JSON.parse(localStorage.getItem('medhc_prof')||'{}').nombre||'').trim();document.getElementById('ag-greeting').textContent=sal+(_n?' — '+_n:' — MedHC');}catch(e){document.getElementById('ag-greeting').textContent=sal+' — MedHC';}
-    try{var _li=document.querySelector('#logo-icon img');var _bl=document.getElementById('ag-banner-logo');if(_li&&_bl)_bl.src=_li.src;var _tl=document.getElementById('ag-tb-logo');if(_li&&_tl)_tl.src=_li.src;}catch(e){}
+    try{var _li=document.querySelector('#logo-icon img');var _bl=document.getElementById('ag-banner-logo');if(_li&&_bl)_bl.src=_li.src;}catch(e){}
     document.getElementById('ag-fecha').textContent=a.toLocaleDateString("es-ES",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
-    const pacs=agGetPacs();
+    const pacs=agGetPacs2();
     document.getElementById('ag-st-total').textContent=pacs.length;
     agActualizarStatHoy();
     // contar esta semana
@@ -12658,7 +12650,7 @@ init();
           <option value="" ${!est?"selected":""}>Estado</option>
           <option value="asistio" ${est==="asistio"?"selected":""}>Asistió</option>
           <option value="no-asistio" ${est==="no-asistio"?"selected":""}>No asistió</option>
-          <option value="aplazada" ${est==="aplazada"?"selected":""}>Aplazar</option>
+          <option value="aplazada" ${est==="aplazada"?"selected":""}>Reagendar</option>
           <option value="cancelada" ${est==="cancelada"?"selected":""}>Cancelada</option>
         </select>
         <button class="ag-hoy-del" onclick="agEliminar('${agHk()}',${i},event)" title="Eliminar">
@@ -12674,6 +12666,13 @@ init();
     if(v==="aplazada"){agAbrirAplazar(dk,idx);sel.value=agAgenda[dk][idx].estado||"";return;}
     if(agAgenda[dk]&&agAgenda[dk][idx]){agAgenda[dk][idx].estado=v;agGuardar();}
     agRenderHoy();agRenderAgenda();
+  };
+
+  window.agSetEstadoSlot=function(dk,idx,sel){
+    const v=sel.value;
+    if(v==="aplazada"){agAbrirAplazar(dk,idx);sel.value=agAgenda[dk][idx].estado||"";return;}
+    if(agAgenda[dk]&&agAgenda[dk][idx]){agAgenda[dk][idx].estado=v;agGuardar();}
+    agRenderAgenda();agRenderHoy();agRenderStats&&agRenderStats();agActualizarStatHoy();
   };
 
   function agAbrirAplazar(dk,idx){
@@ -12737,7 +12736,8 @@ init();
         const d2=document.createElement("div");
         d2.className="ag-slot occ"+(conf&&!isGhost?" conflict":"")+(isGhost?" ghost":"");
         const lbl=isGhost?`<span style="font-size:8px;font-weight:800;text-transform:uppercase;color:var(--light);flex-shrink:0">${s.estado==="aplazada"?"APL":"CAN"}</span>`:"";
-        d2.innerHTML=`<span class="ag-slot-t">${agFmtHC(s.horaInicio)}</span><span class="ag-slot-n">${s.nombre}</span>${lbl}<button class="ag-slot-x" onclick="agEliminar('${dk}',${i},event)">✕</button>`;
+        const estSlot=s.estado||"";
+        d2.innerHTML=`<span class="ag-slot-t">${agFmtHC(s.horaInicio)}</span><span class="ag-slot-n">${s.nombre}</span>${lbl}<select class="ag-slot-est" title="Estado" onchange="agSetEstadoSlot('${dk}',${i},this)" onclick="event.stopPropagation()"><option value="" ${!estSlot?"selected":""}>—</option><option value="asistio" ${estSlot==="asistio"?"selected":""} title="Asistió">✓</option><option value="no-asistio" ${estSlot==="no-asistio"?"selected":""} title="No asistió">✗</option><option value="aplazada" ${estSlot==="aplazada"?"selected":""} title="Reagendar">↺</option></select><button class="ag-slot-x" onclick="agEliminar('${dk}',${i},event)">✕</button>`;
         sl.appendChild(d2);
       });
       const add=document.createElement("div");
@@ -12791,7 +12791,7 @@ init();
     const conf=agChicaInfo(agMDia,hi,agDur,-1);
     if(conf){cel.style.display="block";cel.textContent="Conflicto con "+conf.nombre+" ("+agFmtH(conf.horaInicio)+"). Elige otra hora.";return;}
     cel.style.display="none";
-    const pacs=agGetPacs();
+    const pacs=agGetPacs2();
     const pac=pacs.find(p=>p.nombre.toLowerCase()===nombre.toLowerCase());
     if(!agAgenda[agMDia])agAgenda[agMDia]=[];
     agAgenda[agMDia].push({nombre,horaInicio:hi,duracion:agDur,estado:"",hcCode:(document.getElementById("ag-m-hccode")&&document.getElementById("ag-m-hccode").value)||pac&&pac.hcCode||""});
