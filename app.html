@@ -892,18 +892,23 @@ async function generarTokenFamilia(){
   document.getElementById('pf-spinner').style.display = 'block';
   const token = Math.random().toString(36).slice(2,9).toUpperCase();
   try{
-    await db.collection('pacientes').doc(p.id).set({
+    const tokenData = {
+      ownerUid: currentUser.uid,
       familyToken: token,
       familyActive: true,
       familyGeneratedAt: new Date().toISOString(),
       familyCompleted: false,
-    },{merge:true});
+    };
+    // Guardar en colección raíz (accedida por portal familiar) y en subcollección del usuario
+    await db.collection('pacientes').doc(p.id).set(tokenData,{merge:true});
+    await db.collection('users').doc(currentUser.uid).collection('pacientes').doc(p.id).set(tokenData,{merge:true});
     p.familyToken = token;
     p.familyActive = true;
     p.familyCompleted = false;
     document.getElementById('pf-spinner').style.display = 'none';
     mostrarTokenActivoUI(p);
     actualizarSubtituloLobby(p);
+    watchFamilyToken(p.id);
   } catch(e){
     document.getElementById('pf-spinner').style.display = 'none';
     document.getElementById('pf-sin-token').style.display = 'block';
@@ -949,7 +954,13 @@ async function revocarAccesoFamilia(){
   document.getElementById('pf-spinner').style.display = 'block';
   try{
     await db.collection('pacientes').doc(p.id).set({familyActive:false},{merge:true});
+    await db.collection('users').doc(currentUser.uid).collection('pacientes').doc(p.id).set({familyActive:false},{merge:true});
     p.familyActive = false;
+    // Detener listener si existe
+    if(familyTokenListeners[p.id]){
+      familyTokenListeners[p.id]();
+      delete familyTokenListeners[p.id];
+    }
     document.getElementById('pf-spinner').style.display = 'none';
     document.getElementById('pf-sin-token').style.display = 'block';
     actualizarSubtituloLobby(p);
@@ -958,6 +969,61 @@ async function revocarAccesoFamilia(){
     document.getElementById('pf-con-token').style.display = 'block';
     alert('Error al revocar. Intente de nuevo.');
   }
+}
+
+// ── Sincronización formulario familiar ──────────────────────────────────────
+const familyTokenListeners = {};
+const FAMILY_SYNC_FIELDS = ['familyCompleted','familyFilledAt',
+  'nombre','fechaNac','lugarNac','sexo','edad','cedula',
+  'gradoEscolar','institucion','direccion',
+  'repNombre','repParentesco','repTelefono','personasEnCasa',
+  'motivoConsulta','motivoRepresentante','motivoConsultaAdulto',
+  'embarazoPlaneado','cuidadosPrenatales','saludMadre',
+  'complicacionesEmbarazo','otrasCompEmbarazo',
+  'tipoNacimiento','semanasEmbarazo','tipoParto',
+  'pesoNacer','tallaNacer','edadCamino','primerasPalabras',
+  'controlEsfinteresDiurno','controlEsfinteresNocturno',
+  'asistenciaEscolar','relacionCompaneros','relacionDocentes',
+  'horaDormir','horaDespertar','habSueno','habAlimentacion',
+  'habAutonomia','actividadesExtracurriculares',
+  'relacionPadres','respuestaLimites','reaccionFrustracion',
+  'medicacionActual','diagnosticoPrevio','diagnosticoPrevioMed',
+  'convivientes','estadoCivil','ocupacion','nivelEducativo',
+  'historiaInfancia','historiaAdolescencia',
+  'composicionFamiliarA','redApoyo','calidadSueno',
+  'actividadFisica','consumoAlcohol','consumoTabaco',
+  'nombreA','nombreB','edadA','edadB',
+  'nombreFamilia','comentariosAdicionales',
+  'impactoProblema','antecedentesDesarrollo',
+  'rendimientoAcademico','relacionDocentesAdo',
+  'adaptacionEscolar','cantidadAmigos','calidadAmigos',
+  'aislamientoAdo','bullyingAdo','autoestima',
+  'busquedaIndependencia','patronAlimentacion','inicioproblema'];
+
+function watchFamilyToken(patientId){
+  if(!currentUser || familyTokenListeners[patientId]) return;
+  familyTokenListeners[patientId] = db.collection('pacientes').doc(patientId)
+    .onSnapshot(async function(snap){
+      if(!snap.exists) return;
+      const d = snap.data();
+      if(!d.familyCompleted) return;
+      try{
+        const userRef = db.collection('users').doc(currentUser.uid)
+          .collection('pacientes').doc(patientId);
+        const userSnap = await userRef.get();
+        if(userSnap.exists && userSnap.data().familyCompleted) return; // Ya sincronizado
+        const toMerge = {};
+        FAMILY_SYNC_FIELDS.forEach(function(k){ if(d[k] !== undefined) toMerge[k] = d[k]; });
+        await userRef.set(toMerge,{merge:true});
+        showToastMsg('✅ Formulario familiar completado — datos importados a la historia');
+        // Actualizar en memoria
+        const idx = patients.findIndex(function(x){ return x.id === patientId; });
+        if(idx !== -1){ Object.assign(patients[idx], toMerge); renderList(); }
+        // Desuscribir tras sincronización exitosa
+        familyTokenListeners[patientId]();
+        delete familyTokenListeners[patientId];
+      }catch(e){ console.error('Error sincronizando datos familiares:', e); }
+    });
 }
 
 function actualizarSubtituloLobby(p){
@@ -7056,6 +7122,12 @@ async function init(){
             const p=getP();
             if(p)document.getElementById("hdr-name").textContent=p.nombre||"Paciente sin nombre";
           }
+          // Iniciar listener de sync para pacientes con token activo no completado
+          patients.forEach(function(pat){
+            if(pat.familyToken && pat.familyActive && !pat.familyCompleted){
+              watchFamilyToken(pat.id);
+            }
+          });
         });
       // Update plan display in sidebar
       updatePlanBadge();

@@ -263,6 +263,29 @@ label{display:block;font-size:11.5px;font-weight:700;color:var(--mid);margin-bot
   display:flex;align-items:center;gap:10px;
 }
 .sec-divider::before,.sec-divider::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* Mejoras móvil extra */
+@media(max-width:480px){
+  .wrap{padding:14px 10px 80px;}
+  .hdr{padding:18px 16px;gap:12px;}
+  .hdr h1{font-size:16px;}
+  .hdr p{font-size:11.5px;}
+  .sec-body{padding:14px 12px;}
+  .sec-hdr{padding:11px 14px;}
+  .g2,.g3{gap:10px;}
+  .chk-item{font-size:12px;padding:8px 10px;min-height:36px;}
+  .patient-pill{padding:11px 14px;gap:10px;}
+  .patient-pill-icon{width:36px;height:36px;font-size:17px;}
+  .btn-submit{padding:14px 28px;font-size:15px;}
+}
+/* Checkboxes más táctiles */
+.checks{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
+.chk-item{min-height:38px;font-size:13px;padding:8px 13px;line-height:1.3;}
+/* Labels más claros */
+label{font-size:11px;font-weight:700;color:#475569;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
+/* Inputs ligeramente más grandes */
+input,select,textarea{font-size:14px;padding:11px 13px;}
+select{appearance:auto;}
 </style>
 </head>
 <body>
@@ -402,6 +425,11 @@ function mostrarFormulario(p){
   else if(tipo==='Familia') container.innerHTML=htmlFamilia(p);
   else if(tipo==='Grupo terapéutico') container.innerHTML=htmlGrupo(p);
   else container.innerHTML=htmlInfantil(p); // fallback
+  if(p.familyCompleted){
+    container.insertAdjacentHTML('afterbegin',
+      '<div class="nota-info" style="background:#ecfdf5;border:1px solid #6ee7b7;color:#065f46;"><span class="nota-info-icon">✅</span><span>Este formulario ya fue enviado anteriormente. Puede revisar o actualizar la información y volver a enviarlo.</span></div>'
+    );
+  }
   bindChecks();
   updateProgress();
   container.querySelectorAll('input,select,textarea').forEach(el=>{
@@ -430,8 +458,11 @@ function updateProgress(){
 // ── Bind checkboxes ───────────────────────────────────────────────────────────
 function bindChecks(){
   document.querySelectorAll('.chk-item').forEach(item=>{
-    item.addEventListener('click',()=>{
+    item.addEventListener('click',(e)=>{
+      e.preventDefault(); // evita doble-toggle por comportamiento nativo del <label>
       item.classList.toggle('active');
+      const cb=item.querySelector('input[type="checkbox"]');
+      if(cb) cb.checked=item.classList.contains('active');
       updateProgress();
     });
   });
@@ -471,7 +502,7 @@ function collectData(){
       horaDormir:v('f_horaDormir'),horaDespertar:v('f_horaDespertar'),
       habSueno:getChecked('habSueno'),habAlimentacion:getChecked('habAlim'),
       habAutonomia:getChecked('habAuto'),
-      actividadesExtracurriculares:v('f_extra'),
+      actividadesExtracurriculares:getChecked('actExtra'),
       relacionPadres:v('f_relPadres'),respuestaLimites:v('f_respLimites'),
       reaccionFrustracion:v('f_reacFrust'),
       medicacionActual:v('f_medicacion'),diagnosticoPrevio:v('f_dxPrevio'),
@@ -651,7 +682,7 @@ function htmlInfantil(p){
         <div class="fld"><label>Edad actual</label><input id="f_edad" type="number" value="${p.edad||''}" placeholder="Años"/></div>
         <div class="fld"><label>Sexo</label>${sel('f_sexo',['Femenino','Masculino','Otro'],p.sexo||'')}</div>
         <div class="fld"><label>Cédula / Documento</label><input id="f_cedula" type="text" value="${p.cedula||''}" placeholder="Número de documento"/></div>
-        <div class="fld"><label>Grado escolar</label><input id="f_grado" type="text" value="${p.gradoEscolar||''}" placeholder="Ej: 3er grado"/></div>
+        <div class="fld"><label>Grado escolar</label>${sel('f_grado',['Inicial/Preescolar','1° grado','2° grado','3° grado','4° grado','5° grado','6° grado','7° grado','8° grado','9° grado','10° grado','11° grado','12° grado / Bachillerato','Universidad','No escolarizado/a'],p.gradoEscolar||'')}</div>
         <div class="fld"><label>Institución educativa</label><input id="f_institucion" type="text" value="${p.institucion||''}" placeholder="Nombre del colegio"/></div>
       </div>
       <div class="fld"><label>Dirección de residencia</label><input id="f_direccion" type="text" value="${p.direccion||''}" placeholder="Dirección completa"/></div>
@@ -684,7 +715,7 @@ function htmlInfantil(p){
     <div class="sec-body">
       <div class="g2">
         <div class="fld"><label>¿El embarazo fue planeado?</label>${sel('f_embarazoPlaneado',['Sí','No','Sorpresa','No aplica'],p.embarazoPlaneado||'')}</div>
-        <div class="fld"><label>¿Cuándo comenzó el control prenatal?</label><input id="f_cuidados" type="text" value="${p.cuidadosPrenatales||''}" placeholder="Ej: 6ª semana"/></div>
+        <div class="fld"><label>Cuidados prenatales</label>${sel('f_cuidados',['Sí, regularmente desde el inicio','Sí, pero de forma irregular','No tuvo controles prenatales','No sabe / No aplica'],p.cuidadosPrenatales||'')}</div>
         <div class="fld"><label>Salud de la madre durante el embarazo</label>${sel('f_saludMadre',['Excelente','Buena','Regular','Complicada'],p.saludMadre||'')}</div>
         <div class="fld"><label>Tipo de nacimiento</label>${sel('f_tipoNac',['A término (37-42 semanas)','Prematuro (antes de 37 semanas)','Post-término (más de 42 semanas)'],p.tipoNacimiento||'')}</div>
         <div class="fld"><label>Semanas de gestación</label><input id="f_semanas" type="number" value="${p.semanasEmbarazo||''}" placeholder="Ej: 40"/></div>
@@ -703,10 +734,10 @@ function htmlInfantil(p){
     <div class="sec-hdr"><div class="sec-num">5</div><h3>Hitos del desarrollo</h3></div>
     <div class="sec-body">
       <div class="g2">
-        <div class="fld"><label>¿A qué edad caminó solo/a?</label><input id="f_edadCamino" type="text" value="${p.edadCamino||''}" placeholder="Ej: 12 meses"/></div>
-        <div class="fld"><label>¿A qué edad dijo sus primeras palabras?</label><input id="f_primerasPalabras" type="text" value="${p.primerasPalabras||''}" placeholder="Ej: 10 meses"/></div>
-        <div class="fld"><label>Control de esfínteres diurno</label><input id="f_esfDiurno" type="text" value="${p.controlEsfinteresDiurno||''}" placeholder="Ej: 2 años"/></div>
-        <div class="fld"><label>Control de esfínteres nocturno</label><input id="f_esfNocturno" type="text" value="${p.controlEsfinteresNocturno||''}" placeholder="Ej: 3 años"/></div>
+        <div class="fld"><label>¿A qué edad caminó solo/a?</label>${sel('f_edadCamino',['Antes de 9 meses','Entre 9-12 meses','Entre 12-15 meses','Entre 15-18 meses','Después de 18 meses','Aún no camina','No recuerda'],p.edadCamino||'')}</div>
+        <div class="fld"><label>¿A qué edad dijo sus primeras palabras?</label>${sel('f_primerasPalabras',['Antes de 12 meses','Entre 12-18 meses','Entre 18-24 meses','Después de 24 meses','Aún no habla','No recuerda'],p.primerasPalabras||'')}</div>
+        <div class="fld"><label>Control de esfínteres diurno</label>${sel('f_esfDiurno',['Antes de 2 años','Entre 2-3 años','Entre 3-4 años','Después de 4 años','Aún no controla','No aplica'],p.controlEsfinteresDiurno||'')}</div>
+        <div class="fld"><label>Control de esfínteres nocturno</label>${sel('f_esfNocturno',['Antes de 3 años','Entre 3-4 años','Entre 4-5 años','Después de 5 años','Aún no controla','No aplica'],p.controlEsfinteresNocturno||'')}</div>
       </div>
     </div>
   </div>
@@ -739,7 +770,7 @@ function htmlInfantil(p){
         ${chks('habAuto',['Se baña solo/a','Necesita recordatorio para bañarse','Se lava manos y dientes solo/a','Se viste solo/a','Le gusta que le elijan la ropa','Requiere ayuda para vestirse'],p.habAutonomia||[])}
       </div>
       <div class="fld"><label>Actividades extracurriculares</label>
-        <input id="f_extra" type="text" value="${p.actividadesExtracurriculares||''}" placeholder="Deporte, música, arte..."/></div>
+        ${chks('actExtra',['Deporte / ejercicio físico','Arte / manualidades','Música','Danza / teatro','Idiomas','Lectura / biblioteca','Videojuegos','Redes sociales','Ninguna','Otras'],Array.isArray(p.actividadesExtracurriculares)?p.actividadesExtracurriculares:[])}</div>
     </div>
   </div>
 
@@ -807,7 +838,7 @@ function htmlAdolescente(p){
       <div class="fld"><label>Versión del representante — ¿Por qué buscan ayuda?</label>
         <textarea id="f_motivoRep" rows="4" placeholder="Describa desde su perspectiva qué los trae a consulta...">${p.motivoRepresentante||''}</textarea></div>
       <div class="fld"><label>¿Cuándo comenzó el problema?</label>
-        <input id="f_inicioproblema" type="text" value="${p.inicioproblema||''}" placeholder="Ej: Hace 6 meses, en agosto del año pasado..."/></div>
+        ${sel('f_inicioproblema',['Hace menos de 1 mes','Hace 1-3 meses','Hace 3-6 meses','Hace 6-12 meses','Hace más de 1 año','Hace más de 2 años','Desde siempre / desde pequeño'],p.inicioproblema||'')}</div>
       <div class="fld"><label>¿En qué áreas ha afectado?</label>
         ${chks('impactoProb',['Asistencia a clases','Relaciones con amigos','Estado de ánimo diario','Sueño','Alimentación','Motivación general','Familia','Actividades que antes disfrutaba'],p.impactoProblema||[])}
       </div>
