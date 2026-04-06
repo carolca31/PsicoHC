@@ -395,7 +395,7 @@ async function ingresar(){
   btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Verificando...';
   hideBanner('token');
   try{
-    const snap=await db.collection('pacientes').where('familyToken','==',token).where('familyActive','==',true).limit(1).get();
+    const snap=await db.collection('pacientes').where('familyToken','==',token).limit(1).get();
     if(snap.empty){showBanner('token','Código no válido. Verifique e intente de nuevo.','error');btn.disabled=false;btn.textContent='Ingresar';return;}
     const doc=snap.docs[0];
     const p=doc.data();

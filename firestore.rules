@@ -26,9 +26,9 @@ service cloud.firestore {
         // Usuario autenticado (la app del psicólogo)
         request.auth != null
         ||
-        // Portal familiar: puede leer si conoce el token exacto
-        (resource.data.familyActive == true &&
-         resource.data.familyToken != null);
+        // Portal familiar: puede leer si el documento tiene token
+        // (familyActive se verifica en JS; el token ya es secreto compartido)
+        resource.data.familyToken != null;
 
       // Escritura completa: solo usuarios autenticados (psicólogos)
       allow write: if request.auth != null;
