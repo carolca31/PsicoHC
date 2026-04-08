@@ -49,7 +49,7 @@ button{cursor:pointer;font-family:'Inter',sans-serif;font-size:13px;}
 label{display:block;font-size:11.5px;font-weight:700;color:var(--mid);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;}
 
 /* Layout */
-.wrap{max-width:700px;margin:0 auto;padding:28px 16px 0;position:relative;z-index:1;}
+.wrap{max-width:700px;margin:0 auto;padding:28px 16px 48px;position:relative;z-index:1;}
 
 /* Header mejorado */
 .hdr{
@@ -219,13 +219,11 @@ label{display:block;font-size:11.5px;font-weight:700;color:var(--mid);margin-bot
 .progress-label{font-size:12px;color:var(--mid);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
 .progress-label strong{font-family:'Nunito',sans-serif;font-size:16px;font-weight:800;color:var(--accent);}
 
-/* Submit — sticky al fondo */
+/* Submit — al final del formulario */
 .submit-wrap{
-  position:sticky;bottom:0;
-  background:#fff;border-top:1px solid var(--border);
-  padding:12px 16px 18px;margin:30px -16px 0;
-  z-index:50;text-align:center;
-  box-shadow:0 -4px 16px rgba(0,0,0,.07);
+  margin-top:32px;
+  padding:0 0 env(safe-area-inset-bottom, 32px);
+  text-align:center;
 }
 .btn-submit{
   background:linear-gradient(135deg,var(--green),#047857);
@@ -323,6 +321,7 @@ label.req::after{content:' *';color:var(--red);font-size:10px;font-weight:700;}
   .chk-item{min-height:42px;font-size:12.5px;justify-content:flex-start;}
   .date-wrap{gap:5px;}
   .nota-info{font-size:11.5px;padding:9px 12px;}
+  .btn-submit{width:100%;justify-content:center;padding:17px 20px;font-size:15px;}
 }
 @media(max-width:390px){
   .checks{grid-template-columns:1fr;}
