@@ -13288,20 +13288,28 @@ init();
 <script>
 (function(){
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SR) return;
 
   const btn      = document.getElementById('medhc-mic');
   const label    = document.getElementById('medhc-label');
   const iconMic  = document.getElementById('medhc-icon-mic');
   const iconStop = document.getElementById('medhc-icon-stop');
 
+  // Navegador sin soporte: aviso al hacer clic en lugar de silencio
+  if(!SR){
+    btn.addEventListener('click', () => {
+      label.textContent = '❌ No disponible en este navegador';
+      setTimeout(() => { label.textContent = '🎙 Díctale a MedHC'; }, 3000);
+    });
+    return;
+  }
+
   let campoActivo = null;
   let baseText    = '';
   let sessionText = '';
   let recognition = null;
   let escuchando  = false;
+  let reiniciando = false;  // evita llamadas dobles durante el reinicio
 
-  // Rastrear el último campo enfocado
   document.addEventListener('focusin', (e) => {
     const el = e.target;
     if((el.tagName==='INPUT'||el.tagName==='TEXTAREA') && !el.readOnly && !el.disabled){
@@ -13316,7 +13324,8 @@ init();
     r.continuous     = true;
 
     r.onstart = () => {
-      escuchando = true;
+      escuchando  = true;
+      reiniciando = false;
       btn.classList.add('dictado-activo');
       label.textContent = '⏹ Detener dictado';
       iconMic.style.display  = 'none';
@@ -13324,13 +13333,26 @@ init();
     };
 
     r.onend = () => {
-      if(escuchando){
+      // Auto-reinicio: crear NUEVA instancia con setTimeout para evitar
+      // InvalidStateError en iOS (el objeto anterior sigue en estado "stopping")
+      if(escuchando && !reiniciando){
+        reiniciando = true;
         baseText    = campoActivo ? campoActivo.value : '';
         sessionText = '';
-        r.start();
+        setTimeout(() => {
+          if(!escuchando){ pararUI(); return; }
+          try {
+            recognition = crearReconocimiento();
+            recognition.start();
+          } catch(err){
+            escuchando  = false;
+            reiniciando = false;
+            pararUI();
+          }
+        }, 150);
         return;
       }
-      pararUI();
+      if(!reiniciando) pararUI();
     };
 
     r.onresult = (event) => {
@@ -13346,8 +13368,16 @@ init();
     };
 
     r.onerror = (e) => {
-      if(e.error === 'no-speech') return;
-      escuchando = false;
+      // no-speech y aborted son eventos normales, no detener el dictado
+      if(e.error === 'no-speech' || e.error === 'aborted') return;
+      escuchando  = false;
+      reiniciando = false;
+      if(e.error === 'not-allowed'){
+        label.textContent = '🔒 Permiso de micrófono denegado';
+      } else {
+        label.textContent = '⚠️ Error: ' + e.error;
+      }
+      setTimeout(() => { label.textContent = '🎙 Díctale a MedHC'; }, 3000);
       pararUI();
     };
 
@@ -13367,7 +13397,8 @@ init();
     label.textContent = '🎙 Díctale a MedHC';
     iconMic.style.display  = '';
     iconStop.style.display = 'none';
-    escuchando = false;
+    escuchando  = false;
+    reiniciando = false;
   }
 
   btn.addEventListener('click', () => {
@@ -13380,12 +13411,14 @@ init();
       }
       baseText    = campoActivo.value;
       sessionText = '';
+      reiniciando = false;
       recognition = crearReconocimiento();
       recognition.start();
-      escuchando  = true;
     } else {
-      escuchando = false;
-      recognition.stop();
+      escuchando  = false;
+      reiniciando = false;
+      pararUI();
+      try { recognition.stop(); } catch(e) {}
     }
   });
 })();
