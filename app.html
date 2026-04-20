@@ -877,6 +877,13 @@ function abrirPanelFamilia(){
   const activo = p.familyActive;
   if(token && activo){
     mostrarTokenActivoUI(p);
+    // Reparar tokens antiguos que no tienen tipoHistoria en el doc raíz
+    if(currentUser && p.tipoHistoria){
+      db.collection('pacientes').doc(p.id).set(
+        {tipoHistoria:p.tipoHistoria, nombre:p.nombre||'', hcCode:p.hcCode||''},
+        {merge:true}
+      ).catch(function(){});
+    }
   } else {
     document.getElementById('pf-sin-token').style.display = 'block';
     document.getElementById('pf-con-token').style.display = 'none';
@@ -901,6 +908,11 @@ async function generarTokenFamilia(){
       familyActive: true,
       familyGeneratedAt: new Date().toISOString(),
       familyCompleted: false,
+      // Campos mínimos que el portal familiar necesita para mostrar
+      // el formulario correcto y recolectar los datos del tipo adecuado
+      tipoHistoria: p.tipoHistoria || '',
+      nombre: p.nombre || '',
+      hcCode: p.hcCode || '',
     };
     // Guardar en colección raíz (accedida por portal familiar) y en subcollección del usuario
     await db.collection('pacientes').doc(p.id).set(tokenData,{merge:true});
